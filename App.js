@@ -9,6 +9,14 @@ import GerenciarSubstitutosScreen from './src/screens/GerenciarSubstitutosScreen
 import CadastrarSubstitutoScreen from './src/screens/CadastrarSubstitutoScreen';
 import VerQrCodeScreen from './src/screens/VerQrCodeScreen';
 import VerBancaScreen from './src/screens/MinhaBancaScreen';
+import HomeAdminScreen from './src/screens/HomeAdminScreen';
+import GerenciarFeirantesScreen from './src/screens/GerenciarFeirantesScreen';
+import VerDetalhesFeiranteScreen from './src/screens/VerDetalhesFeiranteScreen';
+import GerenciarFeirasScreen from './src/screens/GerenciarFeirasScreen';
+import VerDetalhesFeiraScreen from './src/screens/VerDetalhesFeiraScreen';
+import CadastrarFeiraScreen from './src/screens/CadastrarFeiraScreen';
+import AtualizarFeiraScreen from './src/screens/AtualizarFeiraScreen';
+import LerQrCodeScreen from './src/screens/LerQrCodeScreen';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +38,16 @@ export default function App() {
         <Stack.Screen name="GerenciarSubstituto" component={GerenciarSubstitutosScreen} />
         <Stack.Screen name="CadastrarSubstituto" component={CadastrarSubstitutoScreen} />
         <Stack.Screen name="VerQrCode" component={VerQrCodeScreen} />
+
+        <Stack.Screen name="HomeAdmin" component={HomeAdminScreen} />
+        <Stack.Screen name="GerenciarFeirantes" component={GerenciarFeirantesScreen} />
+        <Stack.Screen name="VerDetalhesFeirante" component={VerDetalhesFeiranteScreen} />
+        <Stack.Screen name="GerenciarFeiras" component={GerenciarFeirasScreen} />
+        <Stack.Screen name="VerDetalhesFeira" component={VerDetalhesFeiraScreen} />
+        <Stack.Screen name="CadastrarFeira" component={CadastrarFeiraScreen} />
+        <Stack.Screen name="AtualizarFeira" component={AtualizarFeiraScreen} />
+        <Stack.Screen name="LerQrCode" component={LerQrCodeScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

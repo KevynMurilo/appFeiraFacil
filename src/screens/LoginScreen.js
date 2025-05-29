@@ -16,39 +16,45 @@ export default function LoginScreen({ navigation }) {
   const [senha, setSenha] = useState('');
 
   const fazerLogin = async () => {
-    if (!email || !senha) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
-      return;
-    }
+  if (!email || !senha) {
+    Alert.alert('Erro', 'Preencha todos os campos.');
+    return;
+  }
 
-    // Login direto como admin/admin (sem requisição)
-    if (email === 'admin' && senha === 'admin') {
-      Alert.alert('Login Local', 'Logado como administrador local');
+  // Login local (sem backend)
+  if (email === 'admin' && senha === '123') {
+    Alert.alert('Login Local', 'Logado como administrador');
+    navigation.replace('HomeAdmin');
+    return;
+  }
+
+  if (email === 'feirante' && senha === '123') {
+    Alert.alert('Login Local', 'Logado como feirante');
+    navigation.replace('HomeFeirante');
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://localhost:8080/api/login', {
+      email,
+      senha,
+    });
+
+    const { token, tipoUsuario, id } = response.data;
+
+    if (tipoUsuario === 'FEIRANTE') {
+      Alert.alert('Sucesso', 'Bem-vindo Feirante!');
       navigation.replace('HomeFeirante');
-      return;
+    } else if (tipoUsuario === 'ADMIN') {
+      Alert.alert('Sucesso', 'Bem-vindo Administrador!');
+      navigation.replace('HomeAdmin');
+    } else {
+      Alert.alert('Aviso', `Tipo de usuário não reconhecido: ${tipoUsuario}`);
     }
-
-    try {
-      const response = await axios.post('http://localhost:8080/api/login', {
-        email,
-        senha,
-      });
-
-      const { token, tipoUsuario, id } = response.data;
-
-      if (tipoUsuario === 'FEIRANTE') {
-        Alert.alert('Sucesso', 'Bem-vindo Feirante!');
-        navigation.replace('HomeFeirante');
-      } else {
-        Alert.alert('Sucesso', `Login realizado como ${tipoUsuario}`);
-        // Aqui você pode navegar para outras telas baseadas no tipo
-      }
-
-      // Você pode salvar o token com AsyncStorage se quiser
 
     } catch (error) {
-      console.log(error);
-      Alert.alert('Erro', 'Falha ao fazer login. Verifique suas credenciais.');
+        console.log(error);
+        Alert.alert('Erro', 'Falha ao fazer login. Verifique suas credenciais.');
     }
   };
 
