@@ -7,11 +7,11 @@ import {
   StyleSheet,
   Platform,
   Alert,
+  SafeAreaView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import TopoNavegacao from '../../components/TopoNavegacao';
 
-export default function CadastrarSubstitutoScreen() {
-  const navigation = useNavigation();
+export default function CadastrarSubstitutoScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
@@ -22,11 +22,7 @@ export default function CadastrarSubstitutoScreen() {
       return;
     }
 
-    const novo = {
-      nome,
-      telefone,
-      email,
-    };
+    const novo = { nome, telefone, email };
 
     console.log('Novo substituto:', novo);
     Alert.alert('Sucesso', 'Substituto cadastrado!');
@@ -34,71 +30,59 @@ export default function CadastrarSubstitutoScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Botão Voltar */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.voltar}>
-        <Text style={styles.voltarTexto}>← Voltar</Text>
-      </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <TopoNavegacao titulo="Cadastrar Substituto" />
 
-      {/* Título */}
-      <Text style={styles.titulo}>Cadastrar Substituto</Text>
+        <View style={styles.conteudo}>
+          <Text style={styles.label}>Nome completo</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite o nome"
+            value={nome}
+            onChangeText={setNome}
+          />
 
-      {/* Formulário */}
-      <Text style={styles.label}>Nome completo</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Digite o nome"
-        value={nome}
-        onChangeText={setNome}
-      />
+          <Text style={styles.label}>Telefone</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite o telefone"
+            value={telefone}
+            onChangeText={setTelefone}
+            keyboardType="phone-pad"
+          />
 
-      <Text style={styles.label}>Telefone</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Digite o telefone"
-        value={telefone}
-        onChangeText={setTelefone}
-        keyboardType="phone-pad"
-      />
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite o email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Digite o email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      {/* Botão Salvar */}
-      <TouchableOpacity style={styles.botao} onPress={handleSalvar}>
-        <Text style={styles.botaoTexto}>Salvar Substituto</Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity style={styles.botao} onPress={handleSalvar}>
+            <Text style={styles.botaoTexto}>Salvar Substituto</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
-    backgroundColor: '#fff',
+  safeArea: {
     flex: 1,
+    backgroundColor: '#fff',
   },
-  voltar: {
-    marginBottom: 15,
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  voltarTexto: {
-    color: '#004AAD',
-    fontSize: 16,
-  },
-  titulo: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#004AAD',
-    marginBottom: 30,
-    textAlign: 'center',
+  conteudo: {
+    padding: 20,
+    paddingTop: 10,
   },
   label: {
     fontWeight: '600',

@@ -9,7 +9,6 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import TopoNavegacao from '../../components/TopoNavegacao'; // certifique-se que o caminho está certo
 
 export default function FeirasRegistradasScreen() {
   const navigation = useNavigation();
@@ -52,7 +51,6 @@ export default function FeirasRegistradasScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo="Feiras Registradas" />
       <ScrollView contentContainerStyle={styles.container}>
         {feiras.map(renderFeira)}
       </ScrollView>

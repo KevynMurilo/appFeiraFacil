@@ -9,7 +9,6 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function GerenciarFeirantesScreen() {
   const navigation = useNavigation();
@@ -57,10 +56,6 @@ export default function GerenciarFeirantesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao
-        titulo="Gerenciar Feirantes"
-        subtitulo="Lista de feirantes cadastrados"
-      />
 
       <ScrollView contentContainerStyle={styles.container}>
         {feirantes.map(renderFeirante)}

@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from 'react-native';
 import axios from 'axios';
 
@@ -16,50 +16,56 @@ export default function LoginScreen({ navigation }) {
   const [senha, setSenha] = useState('');
 
   const fazerLogin = async () => {
-  if (!email || !senha) {
-    Alert.alert('Erro', 'Preencha todos os campos.');
-    return;
-  }
-
-  // Login local (sem backend)
-  if (email === 'admin' && senha === '123') {
-    Alert.alert('Login Local', 'Logado como administrador');
-    navigation.replace('HomeAdmin');
-    return;
-  }
-
-  if (email === 'feirante' && senha === '123') {
-    Alert.alert('Login Local', 'Logado como feirante');
-    navigation.replace('HomeFeirante');
-    return;
-  }
-
-  try {
-    const response = await axios.post('http://localhost:8080/api/login', {
-      email,
-      senha,
-    });
-
-    const { token, tipoUsuario, id } = response.data;
-
-    if (tipoUsuario === 'FEIRANTE') {
-      Alert.alert('Sucesso', 'Bem-vindo Feirante!');
-      navigation.replace('HomeFeirante');
-    } else if (tipoUsuario === 'ADMIN') {
-      Alert.alert('Sucesso', 'Bem-vindo Administrador!');
-      navigation.replace('HomeAdmin');
-    } else {
-      Alert.alert('Aviso', `Tipo de usuário não reconhecido: ${tipoUsuario}`);
+    if (!email || !senha) {
+      Alert.alert('Erro', 'Preencha todos os campos.');
+      return;
     }
 
+    // Login local (sem backend)
+    if (email === 'admin' && senha === '123') {
+      Alert.alert('Login Local', 'Logado como administrador');
+      navigation.replace('AdminDrawer');
+      return;
+    }
+
+    if (email === 'feirante' && senha === '123') {
+      Alert.alert('Login Local', 'Logado como feirante');
+      navigation.replace('FeiranteDrawer', {
+        screen: 'Feiras Registradas',
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/login', {
+        email,
+        senha,
+      });
+
+      const { token, tipoUsuario } = response.data;
+
+      if (tipoUsuario === 'FEIRANTE') {
+        Alert.alert('Sucesso', 'Bem-vindo Feirante!');
+        navigation.replace('FeiranteDrawer', {
+          screen: 'Feiras Registradas',
+        });
+      } else if (tipoUsuario === 'ADMIN') {
+        Alert.alert('Sucesso', 'Bem-vindo Administrador!');
+        navigation.replace('AdminDrawer');
+      } else {
+        Alert.alert('Aviso', `Tipo de usuário não reconhecido: ${tipoUsuario}`);
+      }
     } catch (error) {
-        console.log(error);
-        Alert.alert('Erro', 'Falha ao fazer login. Verifique suas credenciais.');
+      console.log(error);
+      Alert.alert('Erro', 'Falha ao fazer login. Verifique suas credenciais.');
     }
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <Text style={styles.title}>Vamos <Text style={styles.highlight}>Entrar</Text></Text>
       <Text style={styles.subtitle}>Acesse sua conta para continuar</Text>
 

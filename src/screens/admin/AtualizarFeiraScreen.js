@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,14 @@ import {
   TouchableOpacity,
   Platform,
   Alert,
+  SafeAreaView,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
+import TopoNavegacao from '../../components/TopoNavegacao';
 
-export default function AtualizarFeiraScreen() {
-  const navigation = useNavigation();
+export default function AtualizarFeiraScreen({ navigation }) {
   const route = useRoute();
   const { feira: feiraOriginal } = route.params;
 
@@ -49,79 +50,72 @@ export default function AtualizarFeiraScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.voltar}>
-        <Ionicons name="arrow-back" size={24} color="#004AAD" />
-      </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <TopoNavegacao titulo="Atualizar Feira" />
 
-      <Text style={styles.titulo}>Atualizar Feira</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.titulo}>Atualizar Feira</Text>
 
-      {[
-        { label: 'Nome da Feira', key: 'nome' },
-        { label: 'Local', key: 'local' },
-        { label: 'Dias da Semana', key: 'diasSemana' },
-        { label: 'Horário (ex: 07:00)', key: 'horario' },
-        { label: 'Máx. Feirantes', key: 'maxFeirantes', keyboard: 'numeric' },
-      ].map(({ label, key, keyboard }) => (
-        <View key={key} style={styles.inputGroup}>
-          <Text style={styles.label}>{label}:</Text>
-          <TextInput
-            style={styles.input}
-            value={String(feira[key])}
-            onChangeText={(value) => handleChange(key, value)}
-            keyboardType={keyboard || 'default'}
-            placeholder={`Digite ${label.toLowerCase()}`}
-            placeholderTextColor="#999"
-          />
-        </View>
-      ))}
+        {[ 
+          { label: 'Nome da Feira', key: 'nome' },
+          { label: 'Local', key: 'local' },
+          { label: 'Dias da Semana', key: 'diasSemana' },
+          { label: 'Horário (ex: 07:00)', key: 'horario' },
+          { label: 'Máx. Feirantes', key: 'maxFeirantes', keyboard: 'numeric' },
+        ].map(({ label, key, keyboard }) => (
+          <View key={key} style={styles.inputGroup}>
+            <Text style={styles.label}>{label}:</Text>
+            <TextInput
+              style={styles.input}
+              value={String(feira[key])}
+              onChangeText={(value) => handleChange(key, value)}
+              keyboardType={keyboard || 'default'}
+              placeholder={`Digite ${label.toLowerCase()}`}
+              placeholderTextColor="#999"
+            />
+          </View>
+        ))}
 
-      <Text style={styles.label}>Localização (clique no mapa para atualizar)</Text>
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: parseFloat(feira.latitude),
-          longitude: parseFloat(feira.longitude),
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-        onPress={handleMapPress}
-      >
-        <Marker
-          coordinate={{
+        <Text style={styles.label}>Localização (clique no mapa para atualizar)</Text>
+        <MapView
+          style={styles.map}
+          initialRegion={{
             latitude: parseFloat(feira.latitude),
             longitude: parseFloat(feira.longitude),
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
           }}
-          title={feira.nome}
-        />
-      </MapView>
+          onPress={handleMapPress}
+        >
+          <Marker
+            coordinate={{
+              latitude: parseFloat(feira.latitude),
+              longitude: parseFloat(feira.longitude),
+            }}
+            title={feira.nome}
+          />
+        </MapView>
 
-      <Text style={styles.coord}>
-        {feira.latitude && feira.longitude
-          ? `Lat: ${parseFloat(feira.latitude).toFixed(5)} | Long: ${parseFloat(feira.longitude).toFixed(5)}`
-          : 'Clique no mapa para definir latitude e longitude'}
-      </Text>
+        <Text style={styles.coord}>
+          {feira.latitude && feira.longitude
+            ? `Lat: ${parseFloat(feira.latitude).toFixed(5)} | Long: ${parseFloat(feira.longitude).toFixed(5)}`
+            : 'Clique no mapa para definir latitude e longitude'}
+        </Text>
 
-      <TouchableOpacity style={styles.botaoSalvar} onPress={handleAtualizar}>
-        <Ionicons name="create" size={20} color="#fff" />
-        <Text style={styles.botaoTexto}>Salvar Alterações</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.botaoSalvar} onPress={handleAtualizar}>
+          <Ionicons name="create" size={20} color="#fff" />
+          <Text style={styles.botaoTexto}>Salvar Alterações</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    paddingBottom: 30,
     backgroundColor: '#fff',
-  },
-  voltar: {
-    marginBottom: 10,
-    backgroundColor: '#E6F0FF',
-    padding: 6,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
   },
   titulo: {
     fontSize: 24,

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView, Platform } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
-import TopoNavegacao from '../../components/TopoNavegacao';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LerQrCodeChamadaScreen() {
@@ -40,7 +39,7 @@ export default function LerQrCodeChamadaScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo="Ler QR Code" />
+
       <View style={styles.container}>
         <View style={styles.cameraContainer}>
           <CameraView

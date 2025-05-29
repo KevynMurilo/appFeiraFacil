@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function GerenciarFeirasScreen() {
   const navigation = useNavigation();
@@ -70,7 +69,6 @@ export default function GerenciarFeirasScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo="Gerenciar Feiras" />
 
       <View style={styles.acoesContainer}>
         <TouchableOpacity

@@ -12,7 +12,6 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function CadastrarBancaScreen() {
   const navigation = useNavigation();
@@ -47,7 +46,6 @@ export default function CadastrarBancaScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo="Nova Banca" />
 
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.label}>📍 Selecione a feira</Text>

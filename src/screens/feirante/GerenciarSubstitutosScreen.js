@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function GerenciarSubstitutosScreen() {
   const navigation = useNavigation();
@@ -41,7 +40,6 @@ export default function GerenciarSubstitutosScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo="Gerenciar Substitutos" />
 
       <View style={styles.acoesContainer}>
         <TouchableOpacity
