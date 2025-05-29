@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function GerenciarFeirantesScreen() {
   const navigation = useNavigation();
@@ -20,10 +20,7 @@ export default function GerenciarFeirantesScreen() {
       nome: 'João da Feira',
       email: 'joao@email.com',
       telefone: '61999999999',
-      feiras: [
-        { nome: 'Feira do Centro' },
-        { nome: 'Feira do Norte' },
-      ],
+      feiras: [{ nome: 'Feira do Centro' }, { nome: 'Feira do Norte' }],
       banca: {
         tipoProduto: 'Verduras e Legumes',
         produtos: ['Alface', 'Cenoura', 'Couve'],
@@ -34,9 +31,7 @@ export default function GerenciarFeirantesScreen() {
       nome: 'Maria Verdureira',
       email: 'maria@email.com',
       telefone: '61988888888',
-      feiras: [
-        { nome: 'Feira do Sul' },
-      ],
+      feiras: [{ nome: 'Feira do Sul' }],
       banca: {
         tipoProduto: 'Frutas',
         produtos: ['Banana', 'Maçã', 'Uva'],
@@ -62,15 +57,12 @@ export default function GerenciarFeirantesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <TopoNavegacao
+        titulo="Gerenciar Feirantes"
+        subtitulo="Lista de feirantes cadastrados"
+      />
+
       <ScrollView contentContainerStyle={styles.container}>
-        {/* Botão de voltar com ícone */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.voltar}>
-          <Ionicons name="arrow-back" size={24} color="#004AAD" />
-        </TouchableOpacity>
-
-        <Text style={styles.titulo}>Gerenciar Feirantes</Text>
-        <Text style={styles.subtitulo}>Lista de feirantes cadastrados</Text>
-
         {feirantes.map(renderFeirante)}
       </ScrollView>
     </SafeAreaView>
@@ -83,27 +75,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   container: {
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    marginTop: 15,
     backgroundColor: '#fff',
-    alignItems: 'center',
-  },
-  voltar: {
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-  },
-  titulo: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#004AAD',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subtitulo: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
-    textAlign: 'center',
   },
   card: {
     backgroundColor: '#F2F6FF',

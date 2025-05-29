@@ -5,10 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Platform,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function GerenciarSubstitutosScreen() {
   const navigation = useNavigation();
@@ -19,12 +21,7 @@ export default function GerenciarSubstitutosScreen() {
     { id: '3', nome: 'João Mendes', telefone: '61987776666', email: 'joao@email.com' },
     { id: '4', nome: 'Mariana Lima', telefone: '61976665544', email: 'mariana@email.com' },
     { id: '5', nome: 'Pedro Rocha', telefone: '61999991111', email: 'pedro@email.com' },
-    { id: '6', nome: 'Letícia Gomes', telefone: '61988882222', email: 'leticia@email.com' },
-    { id: '7', nome: 'Rafael Dias', telefone: '61977773333', email: 'rafael@email.com' },
-    { id: '8', nome: 'Fernanda Costa', telefone: '61966664444', email: 'fernanda@email.com' },
-    { id: '9', nome: 'Lucas Martins', telefone: '61955556666', email: 'lucas@email.com' },
-    { id: '10', nome: 'Juliana Alves', telefone: '61944447777', email: 'juliana@email.com' },
-    ]);
+  ]);
 
   const removerSubstituto = (id) => {
     Alert.alert(
@@ -43,77 +40,70 @@ export default function GerenciarSubstitutosScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.voltarTexto}>← Voltar</Text>
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safe}>
+      <TopoNavegacao titulo="Gerenciar Substitutos" />
 
+      <View style={styles.acoesContainer}>
         <TouchableOpacity
-          style={styles.botaoAdicionarTopo}
+          style={styles.botaoNovo}
           onPress={() => navigation.navigate('CadastrarSubstituto')}
         >
-          <Text style={styles.botaoAdicionarTopoTexto}>＋ Adicionar</Text>
+          <Ionicons name="add-circle-outline" size={22} color="#00AEEF" />
+          <Text style={styles.botaoNovoTexto}>Novo Substituto</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.titulo}>Gerenciar Substitutos</Text>
-
-      {substitutos.map((sub) => (
-        <View key={sub.id} style={styles.card}>
-          <Text style={styles.nome}>{sub.nome}</Text>
-          <Text style={styles.dado}>📞 {sub.telefone}</Text>
-          <Text style={styles.dado}>✉️ {sub.email}</Text>
-          <TouchableOpacity style={styles.botaoRemover} onPress={() => removerSubstituto(sub.id)}>
-            <Text style={styles.botaoRemoverTexto}>Remover</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-    </ScrollView>
+      <ScrollView contentContainerStyle={styles.container}>
+        {substitutos.map((sub) => (
+          <View key={sub.id} style={styles.card}>
+            <Text style={styles.nome}>{sub.nome}</Text>
+            <Text style={styles.dado}>📞 {sub.telefone}</Text>
+            <Text style={styles.dado}>✉️ {sub.email}</Text>
+            <TouchableOpacity
+              style={styles.botaoRemover}
+              onPress={() => removerSubstituto(sub.id)}
+            >
+              <Text style={styles.botaoRemoverTexto}>Remover</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+  safe: {
+    flex: 1,
     backgroundColor: '#fff',
-    flexGrow: 1,
   },
-  topBar: {
+  acoesContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    alignItems: 'flex-end',
+  },
+  botaoNovo: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-  },
-  voltarTexto: {
-    color: '#004AAD',
-    fontSize: 16,
-  },
-  botaoAdicionarTopo: {
-    backgroundColor: '#004AAD',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    backgroundColor: '#E6F7FD',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 20,
   },
-  botaoAdicionarTopoTexto: {
-    color: '#fff',
-    fontSize: 14,
+  botaoNovoTexto: {
+    marginLeft: 6,
+    color: '#00AEEF',
     fontWeight: 'bold',
   },
-  titulo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#004AAD',
-    marginBottom: 20,
-    textAlign: 'center',
+  container: {
+    padding: 20,
+    backgroundColor: '#fff',
   },
   card: {
     backgroundColor: '#F2F6FF',
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
-    elevation: 2,
   },
   nome: {
     fontSize: 17,

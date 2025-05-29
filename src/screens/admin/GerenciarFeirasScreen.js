@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -10,6 +9,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function GerenciarFeirasScreen() {
   const navigation = useNavigation();
@@ -45,10 +45,18 @@ export default function GerenciarFeirasScreen() {
     return (
       <View key={feira.id} style={styles.card}>
         <Text style={styles.nome}>{feira.nome}</Text>
-        <Text style={styles.info}><Text style={styles.label}>Local:</Text> {feira.local}</Text>
-        <Text style={styles.info}><Text style={styles.label}>Dias:</Text> {feira.diasSemana}</Text>
-        <Text style={styles.info}><Text style={styles.label}>Horário:</Text> {feira.horario}h</Text>
-        <Text style={styles.info}><Text style={styles.label}>Vagas:</Text> {feira.feirantes.length}/{feira.maxFeirantes} ocupadas</Text>
+        <Text style={styles.info}>
+          <Text style={styles.label}>Local:</Text> {feira.local}
+        </Text>
+        <Text style={styles.info}>
+          <Text style={styles.label}>Dias:</Text> {feira.diasSemana}
+        </Text>
+        <Text style={styles.info}>
+          <Text style={styles.label}>Horário:</Text> {feira.horario}h
+        </Text>
+        <Text style={styles.info}>
+          <Text style={styles.label}>Vagas:</Text> {feira.feirantes.length}/{feira.maxFeirantes} ocupadas
+        </Text>
 
         <TouchableOpacity
           style={styles.botao}
@@ -62,24 +70,19 @@ export default function GerenciarFeirasScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Ionicons name="arrow-back" size={24} color="#004AAD" />
-        </TouchableOpacity>
+      <TopoNavegacao titulo="Gerenciar Feiras" />
 
+      <View style={styles.acoesContainer}>
         <TouchableOpacity
-          style={styles.headerButtonNova}
+          style={styles.botaoNovaFeira}
           onPress={() => navigation.navigate('CadastrarFeira')}
         >
           <Ionicons name="add-circle-outline" size={22} color="#00AEEF" />
-          <Text style={styles.headerButtonText}>Nova Feira</Text>
+          <Text style={styles.botaoNovaFeiraTexto}>Nova Feira</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.titulo}>Gerenciar Feiras</Text>
-        <Text style={styles.subtitulo}>Lista de feiras cadastradas</Text>
-
         {feiras.map(renderFeira)}
       </ScrollView>
     </SafeAreaView>
@@ -91,18 +94,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  acoesContainer: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 30,
-    backgroundColor: '#fff',
+    paddingTop: 10,
+    alignItems: 'flex-end',
   },
-  headerButton: {
-    padding: 5,
-  },
-  headerButtonNova: {
+  botaoNovaFeira: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E6F7FD',
@@ -110,7 +107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 20,
   },
-  headerButtonText: {
+  botaoNovaFeiraTexto: {
     marginLeft: 6,
     color: '#00AEEF',
     fontWeight: 'bold',
@@ -119,19 +116,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
     backgroundColor: '#fff',
-  },
-  titulo: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#004AAD',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subtitulo: {
-    fontSize: 16,
-    color: '#555',
-    textAlign: 'center',
-    marginBottom: 20,
   },
   card: {
     backgroundColor: '#F2F6FF',

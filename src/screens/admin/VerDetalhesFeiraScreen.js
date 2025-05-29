@@ -5,13 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
   Alert,
   SafeAreaView,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
+import { Ionicons } from '@expo/vector-icons';
+import TopoNavegacao from '../../components/TopoNavegacao';
 
 export default function VerDetalhesFeiraScreen() {
   const navigation = useNavigation();
@@ -42,19 +42,18 @@ export default function VerDetalhesFeiraScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <TopoNavegacao titulo="Detalhes da Feira" />
+
       <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.voltar}>
-          <Ionicons name="arrow-back" size={24} color="#004AAD" />
-        </TouchableOpacity>
-
-        <Text style={styles.titulo}>Detalhes da Feira</Text>
-
         <View style={styles.card}>
           <Info label="Nome" valor={feira.nome} />
           <Info label="Local" valor={feira.local} />
           <Info label="Dias da Semana" valor={feira.diasSemana} />
           <Info label="Horário" valor={`${feira.horario}h`} />
-          <Info label="Feirantes Atuais / Limite" valor={`${feira.feirantes.length} / ${feira.maxFeirantes}`} />
+          <Info
+            label="Feirantes Atuais / Limite"
+            valor={`${feira.feirantes.length} / ${feira.maxFeirantes}`}
+          />
           <Info label="Vagas Disponíveis" valor={vagasRestantes.toString()} />
         </View>
 
@@ -110,17 +109,9 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 20,
-    paddingBottom: 120, // espaço pros botões fixos
+    paddingBottom: 120,
     backgroundColor: '#fff',
     flexGrow: 1,
-  },
-  voltar: {
-    padding: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: '#E6F0FF',
-    borderRadius: 8,
-    marginBottom: 10,
-    elevation: 3,
   },
   titulo: {
     fontSize: 26,
