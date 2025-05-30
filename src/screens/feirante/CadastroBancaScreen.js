@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 export default function CadastrarBancaScreen() {
   const navigation = useNavigation();
@@ -20,11 +22,28 @@ export default function CadastrarBancaScreen() {
   const [produtoAtual, setProdutoAtual] = useState('');
   const [produtos, setProdutos] = useState([]);
   const [feiraSelecionada, setFeiraSelecionada] = useState('');
+  const [feirasDisponiveis, setFeirasDisponiveis] = useState([]);
 
-  const feirasDisponiveis = [
-    { id: '1', nome: 'Feira do Centro' },
-    { id: '2', nome: 'Feira da Vila' },
-  ];
+  const [mensagemErro, setMensagemErro] = useState('');
+  const [mensagemSucesso, setMensagemSucesso] = useState('');
+
+  useEffect(() => {
+    const carregarFeiras = async () => {
+      try {
+        const response = await axios.get('http://10.1.59.59:8080/api/feiras');
+        const res = response.data;
+
+        if (res.success && res.data) {
+          setFeirasDisponiveis(res.data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar feiras:', error);
+        setMensagemErro('Erro ao carregar feiras disponíveis.');
+      }
+    };
+
+    carregarFeiras();
+  }, []);
 
   const adicionarProduto = () => {
     if (produtoAtual.trim() !== '') {
@@ -33,21 +52,50 @@ export default function CadastrarBancaScreen() {
     }
   };
 
-  const handleCadastrar = () => {
-    const bancaMock = {
-      tipoProduto,
-      produtos,
-      feiraId: feiraSelecionada,
-      feiranteId: 'mock-id-do-feirante-logado',
-    };
-    console.log('Banca cadastrada:', bancaMock);
-    alert('Banca cadastrada com sucesso!');
+  const handleCadastrar = async () => {
+    setMensagemErro('');
+    setMensagemSucesso('');
+
+    if (!tipoProduto || produtos.length === 0 || !feiraSelecionada) {
+      setMensagemErro('Preencha todos os campos e adicione pelo menos um produto.');
+      return;
+    }
+
+    try {
+      const feiranteId = await AsyncStorage.getItem('usuarioId');
+      if (!feiranteId) {
+        setMensagemErro('Usuário não identificado.');
+        return;
+      }
+
+      const payload = {
+        tipoProduto,
+        produtos,
+        feiraId: feiraSelecionada,
+        feiranteId,
+      };
+
+      const response = await axios.post('http://10.1.59.59:8080/api/bancas', payload);
+      const res = response.data;
+
+      if (res.success) {
+        setMensagemSucesso('Banca cadastrada com sucesso!');
+        setTimeout(() => navigation.goBack(), 1500);
+      } else {
+        setMensagemErro(res.message || 'Erro ao cadastrar banca.');
+      }
+    } catch (error) {
+      console.error('Erro ao cadastrar banca:', error);
+      setMensagemErro('Erro na comunicação com o servidor.');
+    }
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <ScrollView contentContainerStyle={styles.container}>
+        {mensagemErro !== '' && <Text style={styles.alertaErro}>❌ {mensagemErro}</Text>}
+        {mensagemSucesso !== '' && <Text style={styles.alertaSucesso}>✅ {mensagemSucesso}</Text>}
+
         <Text style={styles.label}>📍 Selecione a feira</Text>
         <View style={styles.pickerContainer}>
           <Picker
@@ -87,9 +135,7 @@ export default function CadastrarBancaScreen() {
             <Text style={styles.label}>✅ Produtos Adicionados</Text>
             <View style={styles.cardProdutos}>
               {produtos.map((p, idx) => (
-                <Text key={idx} style={styles.produtoItem}>
-                  • {p}
-                </Text>
+                <Text key={idx} style={styles.produtoItem}>• {p}</Text>
               ))}
             </View>
           </View>
@@ -113,6 +159,24 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 10 : 20,
     backgroundColor: '#fff',
     flexGrow: 1,
+  },
+  alertaErro: {
+    backgroundColor: '#FFEBEB',
+    color: '#D8000C',
+    borderLeftWidth: 5,
+    borderLeftColor: '#D8000C',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  alertaSucesso: {
+    backgroundColor: '#E6FFED',
+    color: '#2E7D32',
+    borderLeftWidth: 5,
+    borderLeftColor: '#2E7D32',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
   },
   label: {
     fontWeight: '600',

@@ -2,14 +2,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 
 import LoginScreen from './src/screens/LoginScreen';
-import CadastroScreen from './src/screens/feirante/CadastroScreen';
-import HomeAdminScreen from './src/screens/admin/HomeAdminScreen';
-import GerenciarFeirantesScreen from './src/screens/admin/GerenciarFeirantesScreen';
+import CadastroFeiranteScreen from './src/screens/feirante/CadastroFeiranteScreen';
 import VerDetalhesFeiranteScreen from './src/screens/admin/VerDetalhesFeiranteScreen';
-import GerenciarFeirasScreen from './src/screens/admin/GerenciarFeirasScreen';
 import CadastrarFeiraScreen from './src/screens/admin/CadastrarFeiraScreen';
 import AtualizarFeiraScreen from './src/screens/admin/AtualizarFeiraScreen';
-import LerQrCodeChamadaScreen from './src/screens/admin/LerQrCodeChamadaScreen';
 import VerDetalhesFeiraScreen from './src/screens/admin/VerDetalhesFeiraScreen';
 
 import FeiranteDrawer from './src/navigation/FeiranteDrawer';
@@ -25,7 +21,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="FeiranteDrawer"
         screenOptions={{
           headerShown: false,
           ...TransitionPresets.SlideFromRightIOS
@@ -33,7 +29,7 @@ export default function App() {
       >
         {/* Acesso geral */}
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Cadastro" component={CadastroScreen} />
+        <Stack.Screen name="Cadastro" component={CadastroFeiranteScreen} />
 
         {/* Feirante Drawer */}
         <Stack.Screen name="FeiranteDrawer" component={FeiranteDrawer} />

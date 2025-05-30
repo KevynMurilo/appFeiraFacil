@@ -5,41 +5,34 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 
 export default function GerenciarFeirasScreen() {
   const navigation = useNavigation();
+  const [feiras, setFeiras] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const feiras = [
-    {
-      id: '1',
-      nome: 'Feira do Centro',
-      local: 'Praça Central',
-      diasSemana: 'Segunda, Quarta e Sexta',
-      horario: '07:00',
-      maxFeirantes: 30,
-      feirantes: [{}, {}, {}, {}],
-      latitude: '-15.542696',
-      longitude: '-47.337357',
-    },
-    {
-      id: '2',
-      nome: 'Feira da Vila',
-      local: 'Avenida Brasil',
-      diasSemana: 'Terça e Quinta',
-      horario: '08:00',
-      maxFeirantes: 20,
-      feirantes: [{}, {}, {}],
-      latitude: '-15.558135',
-      longitude: '-47.335229',
-    },
-  ];
+  useEffect(() => {
+    fetch('http://10.1.59.59:8080/api/feiras')
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) {
+          setFeiras(json.data);
+        }
+      })
+      .catch(err => {
+        console.error('Erro ao buscar feiras:', err);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const renderFeira = (feira) => {
-    const vagas = feira.maxFeirantes - feira.feirantes.length;
+    const vagasOcupadas = feira.feirantes ? feira.feirantes.length : 0;
+    const vagas = feira.maxFeirantes - vagasOcupadas;
 
     return (
       <View key={feira.id} style={styles.card}>
@@ -54,7 +47,7 @@ export default function GerenciarFeirasScreen() {
           <Text style={styles.label}>Horário:</Text> {feira.horario}h
         </Text>
         <Text style={styles.info}>
-          <Text style={styles.label}>Vagas:</Text> {feira.feirantes.length}/{feira.maxFeirantes} ocupadas
+          <Text style={styles.label}>Vagas:</Text> {vagasOcupadas}/{feira.maxFeirantes} ocupadas
         </Text>
 
         <TouchableOpacity
@@ -69,7 +62,6 @@ export default function GerenciarFeirasScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <View style={styles.acoesContainer}>
         <TouchableOpacity
           style={styles.botaoNovaFeira}
@@ -80,9 +72,13 @@ export default function GerenciarFeirasScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        {feiras.map(renderFeira)}
-      </ScrollView>
+      {loading ? (
+        <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#004AAD" />
+      ) : (
+        <ScrollView contentContainerStyle={styles.container}>
+          {feiras.map(renderFeira)}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

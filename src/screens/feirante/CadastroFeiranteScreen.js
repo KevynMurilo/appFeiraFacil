@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import axios from 'axios';
 
-export default function CadastroScreen({ navigation }) {
+export default function CadastroFeiranteScreen({ navigation }) {
   const [form, setForm] = useState({
     nome: '',
     cpf: '',
@@ -21,25 +20,38 @@ export default function CadastroScreen({ navigation }) {
     senha: '',
   });
 
+  const [mensagem, setMensagem] = useState(null); // { tipo: 'erro' | 'sucesso', texto: string }
+
   const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
+  };
+
+  const exibirMensagem = (texto, tipo = 'erro') => {
+    setMensagem({ texto, tipo });
+    setTimeout(() => setMensagem(null), 3000);
   };
 
   const registrarFeirante = async () => {
     const { nome, cpf, telefone, email, senha } = form;
 
     if (!nome || !cpf || !telefone || !email || !senha) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
+      exibirMensagem('Por favor, preencha todos os campos.', 'erro');
       return;
     }
 
     try {
-      await axios.post('http://localhost:8080/api/feirantes', form);
-      Alert.alert('Sucesso', 'Feirante cadastrado com sucesso!');
-      navigation.navigate('Login');
+      const response = await axios.post('http://10.1.59.59:8080/api/feirantes', form);
+      const res = response.data;
+
+      if (res.success) {
+        exibirMensagem('Cadastro realizado com sucesso!', 'sucesso');
+        setTimeout(() => navigation.replace('Login'), 2000);
+      } else {
+        exibirMensagem(res.message || 'Erro ao cadastrar.');
+      }
     } catch (error) {
       console.error(error);
-      Alert.alert('Erro', 'Falha ao cadastrar. Verifique os dados.');
+      exibirMensagem('Falha ao conectar com o servidor.');
     }
   };
 
@@ -50,6 +62,17 @@ export default function CadastroScreen({ navigation }) {
           Vamos <Text style={styles.highlight}>Cadastrar</Text>
         </Text>
         <Text style={styles.subtitle}>Preencha os dados para criar sua conta</Text>
+
+        {mensagem && (
+          <View
+            style={[
+              styles.mensagem,
+              mensagem.tipo === 'erro' ? styles.erro : styles.sucesso,
+            ]}
+          >
+            <Text style={styles.mensagemTexto}>{mensagem.texto}</Text>
+          </View>
+        )}
 
         <TextInput
           style={styles.input}
@@ -125,7 +148,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    marginBottom: 30,
+    marginBottom: 20,
     color: '#555',
     textAlign: 'center',
   },
@@ -156,5 +179,25 @@ const styles = StyleSheet.create({
   link: {
     color: '#00AEEF',
     fontWeight: 'bold',
+  },
+  mensagem: {
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 6,
+  },
+  mensagemTexto: {
+    textAlign: 'center',
+    fontWeight: '500',
+    fontSize: 15,
+  },
+  erro: {
+    backgroundColor: '#FFD1D1',
+    borderColor: '#FF5A5A',
+    borderWidth: 1,
+  },
+  sucesso: {
+    backgroundColor: '#D1FAD7',
+    borderColor: '#4CAF50',
+    borderWidth: 1,
   },
 });

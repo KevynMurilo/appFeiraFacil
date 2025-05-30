@@ -5,59 +5,74 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [statusMessage, setStatusMessage] = useState(null);
+  const [statusType, setStatusType] = useState(null); // 'success' | 'error'
+
+  const exibirMensagem = (mensagem, tipo) => {
+    setStatusMessage(mensagem);
+    setStatusType(tipo);
+    setTimeout(() => {
+      setStatusMessage(null);
+      setStatusType(null);
+    }, 4000);
+  };
 
   const fazerLogin = async () => {
     if (!email || !senha) {
-      Alert.alert('Erro', 'Preencha todos os campos.');
-      return;
-    }
-
-    // Login local (sem backend)
-    if (email === 'admin' && senha === '123') {
-      Alert.alert('Login Local', 'Logado como administrador');
-      navigation.replace('AdminDrawer');
-      return;
-    }
-
-    if (email === 'feirante' && senha === '123') {
-      Alert.alert('Login Local', 'Logado como feirante');
-      navigation.replace('FeiranteDrawer', {
-        screen: 'Feiras Registradas',
-      });
+      exibirMensagem('Preencha todos os campos.', 'error');
       return;
     }
 
     try {
-      const response = await axios.post('http://localhost:8080/api/login', {
+      const response = await axios.post('http://10.1.59.59:8080/api/auth/login', {
         email,
-        senha,
+        senhaHash: senha,
       });
 
-      const { token, tipoUsuario } = response.data;
+      const res = response.data;
 
+      if (!res.success) {
+        exibirMensagem(res.message, 'error');
+        return;
+      }
+
+      const { token, tipoUsuario, usuario } = res.data;
+
+      // Salvando no AsyncStorage
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('tipoUsuario', tipoUsuario);
+      await AsyncStorage.setItem('usuarioId', usuario.id);
+      await AsyncStorage.setItem('usuarioNome', usuario.nome);
+      await AsyncStorage.setItem('dataHoraLogin', new Date().toISOString());
+
+      exibirMensagem('Login realizado com sucesso!', 'success');
+
+      // Redirecionamento conforme tipo de usuário
       if (tipoUsuario === 'FEIRANTE') {
-        Alert.alert('Sucesso', 'Bem-vindo Feirante!');
-        navigation.replace('FeiranteDrawer', {
-          screen: 'Feiras Registradas',
-        });
+        setTimeout(() => {
+          navigation.replace('FeiranteDrawer', {
+            screen: 'Feiras Registradas',
+          });
+        }, 1000);
       } else if (tipoUsuario === 'ADMIN') {
-        Alert.alert('Sucesso', 'Bem-vindo Administrador!');
-        navigation.replace('AdminDrawer');
+        setTimeout(() => {
+          navigation.replace('AdminDrawer');
+        }, 1000);
       } else {
-        Alert.alert('Aviso', `Tipo de usuário não reconhecido: ${tipoUsuario}`);
+        exibirMensagem(`Tipo de usuário não reconhecido: ${tipoUsuario}`, 'error');
       }
     } catch (error) {
-      console.log(error);
-      Alert.alert('Erro', 'Falha ao fazer login. Verifique suas credenciais.');
+      console.error(error);
+      exibirMensagem('Falha ao fazer login. Verifique suas credenciais.', 'error');
     }
   };
 
@@ -68,6 +83,12 @@ export default function LoginScreen({ navigation }) {
     >
       <Text style={styles.title}>Vamos <Text style={styles.highlight}>Entrar</Text></Text>
       <Text style={styles.subtitle}>Acesse sua conta para continuar</Text>
+
+      {statusMessage && (
+        <View style={[styles.messageBox, statusType === 'error' ? styles.errorBox : styles.successBox]}>
+          <Text style={styles.messageText}>{statusMessage}</Text>
+        </View>
+      )}
 
       <TextInput
         style={styles.input}
@@ -158,5 +179,21 @@ const styles = StyleSheet.create({
   link: {
     color: '#00AEEF',
     fontWeight: 'bold',
+  },
+  messageBox: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorBox: {
+    backgroundColor: '#ffcccc',
+  },
+  successBox: {
+    backgroundColor: '#ccffcc',
+  },
+  messageText: {
+    color: '#333',
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });

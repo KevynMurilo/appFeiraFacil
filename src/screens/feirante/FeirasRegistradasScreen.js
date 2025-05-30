@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,42 +7,87 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 export default function FeirasRegistradasScreen() {
   const navigation = useNavigation();
+  const [feiras, setFeiras] = useState([]);
+  const [carregando, setCarregando] = useState(true);
 
-  const feiras = [
-    { id: 1, nome: 'Feira do Centro', status: 'ATIVO', posicaoFila: null },
-    { id: 2, nome: 'Feira do Bairro Novo', status: 'EM_FILA', posicaoFila: 3 },
-  ];
+  useFocusEffect(
+    React.useCallback(() => {
+      const carregarFeiras = async () => {
+        setCarregando(true);
+        try {
+          const usuarioId = await AsyncStorage.getItem('usuarioId');
+          if (!usuarioId) return;
+
+          const response = await axios.get(
+            `http://10.1.59.59:8080/api/feiras/com-banca/${usuarioId}`
+          );
+
+          const res = response.data;
+
+          if (res.success && res.data) {
+            setFeiras(res.data);
+          } else {
+            setFeiras([]);
+          }
+        } catch (err) {
+          console.error('Erro ao buscar feiras registradas:', err);
+          Alert.alert('Erro', 'Não foi possível carregar as feiras.');
+        } finally {
+          setCarregando(false);
+        }
+      };
+
+      carregarFeiras();
+    }, [])
+  );
 
   const renderFeira = (feira) => (
     <View key={feira.id} style={styles.card}>
       <Text style={styles.nomeFeira}>{feira.nome}</Text>
       <Text style={styles.status}>
         Status:{' '}
-        <Text style={{ fontWeight: 'bold', color: feira.status === 'ATIVO' ? 'green' : '#f90' }}>
-          {feira.status}
+        <Text style={{ fontWeight: 'bold', color: feira.statusFila === 'ATIVO' ? 'green' : '#f90' }}>
+          {feira.statusFila}
         </Text>
       </Text>
-      {feira.status === 'EM_FILA' && (
+      {feira.statusFila !== 'ATIVO' && feira.posicaoFila && (
         <Text style={styles.fila}>Fila de espera: {feira.posicaoFila}</Text>
       )}
 
       <TouchableOpacity
         style={styles.botaoInterno}
-        onPress={() =>
-          navigation.navigate('VerMinhaBanca', {
-            banca: {
-              tipoProduto: 'Verduras e Legumes',
-              produtos: ['Alface', 'Cenoura', 'Couve'],
-              feira: { nome: feira.nome },
-              qrCode: 'https://api.qrserver.com/v1/create-qr-code/?data=Banca-' + feira.id,
-            },
-          })
-        }
+        onPress={async () => {
+          try {
+            const feiranteId = await AsyncStorage.getItem('usuarioId');
+            const response = await axios.get(
+              `http://10.1.59.59:8080/api/bancas/feirante/${feiranteId}/feira/${feira.id}`
+            );
+            const res = response.data;
+
+            if (res.success && res.data) {
+              navigation.navigate('VerMinhaBanca', {
+                banca: {
+                  ...res.data,
+                  feira: { nome: feira.nome },
+                },
+              });
+            } else {
+              Alert.alert('Aviso', 'Banca não encontrada nesta feira.');
+            }
+          } catch (error) {
+            console.error('Erro ao buscar banca:', error);
+            Alert.alert('Erro', 'Erro ao buscar banca.');
+          }
+        }}
       >
         <Text style={styles.botaoInternoTexto}>Ver Minha Banca</Text>
       </TouchableOpacity>
@@ -52,7 +97,15 @@ export default function FeirasRegistradasScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        {feiras.map(renderFeira)}
+        {carregando ? (
+          <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 50 }} />
+        ) : feiras.length > 0 ? (
+          feiras.map(renderFeira)
+        ) : (
+          <Text style={{ textAlign: 'center', marginTop: 40, color: '#555' }}>
+            Nenhuma feira registrada encontrada.
+          </Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
