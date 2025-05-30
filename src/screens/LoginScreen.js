@@ -33,7 +33,7 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post('http://10.1.59.59:8080/api/auth/login', {
+      const response = await axios.post('http://192.168.18.17:8080/api/auth/login', {
         email,
         senhaHash: senha,
       });

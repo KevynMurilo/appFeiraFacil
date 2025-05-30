@@ -14,6 +14,7 @@ import AdminDrawer from './src/navigation/AdminDrawer';
 import CadastrarSubstitutoScreen from './src/screens/feirante/CadastrarSubstitutoScreen';
 import VerQrCodeScreen from './src/screens/feirante/VerQrCodeScreen';
 import VerBancaScreen from './src/screens/feirante/MinhaBancaScreen';
+import ConfirmarCheckinScreen from './src/screens/admin/ConfirmarCheckinScreen';
 
 const Stack = createStackNavigator();
 
@@ -21,7 +22,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="FeiranteDrawer"
+        initialRouteName="AdminDrawer"
         screenOptions={{
           headerShown: false,
           ...TransitionPresets.SlideFromRightIOS
@@ -43,6 +44,7 @@ export default function App() {
         <Stack.Screen name="VerDetalhesFeira" component={VerDetalhesFeiraScreen} />
         <Stack.Screen name="CadastrarFeira" component={CadastrarFeiraScreen} />
         <Stack.Screen name="AtualizarFeira" component={AtualizarFeiraScreen} />
+        <Stack.Screen name="ConfirmarCheckin" component={ConfirmarCheckinScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

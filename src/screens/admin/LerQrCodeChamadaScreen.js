@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+} from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,14 +38,16 @@ export default function LerQrCodeChamadaScreen() {
   const handleBarCodeScanned = ({ data }) => {
     if (scanned) return;
     setScanned(true);
-    Alert.alert('QR Code Lido', `Conteúdo: ${data}`, [
-      { text: 'OK', onPress: () => setScanned(false) },
-    ]);
+
+    // Redireciona para tela de confirmação com o QR Code
+    navigation.navigate('ConfirmarCheckin', { qrCode: data });
+
+    // Você pode liberar o scanner após alguns segundos se quiser reativar
+    setTimeout(() => setScanned(false), 3000);
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-
       <View style={styles.container}>
         <View style={styles.cameraContainer}>
           <CameraView

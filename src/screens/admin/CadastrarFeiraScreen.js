@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
   Alert,
   SafeAreaView,
 } from 'react-native';
@@ -14,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import axios from 'axios';
 
 export default function CadastrarFeiraScreen() {
   const navigation = useNavigation();
@@ -32,28 +32,42 @@ export default function CadastrarFeiraScreen() {
     setFeira({ ...feira, [field]: value });
   };
 
-  const handleSalvar = () => {
-    if (
-      !feira.nome ||
-      !feira.local ||
-      !feira.diasSemana ||
-      !feira.horario ||
-      !feira.maxFeirantes ||
-      feira.latitude === null ||
-      feira.longitude === null
-    ) {
+  const handleMapPress = (e) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    setFeira({ ...feira, latitude, longitude });
+  };
+
+  const handleSalvar = async () => {
+    const { nome, local, diasSemana, horario, maxFeirantes, latitude, longitude } = feira;
+
+    if (!nome || !local || !diasSemana || !horario || !maxFeirantes || latitude === null || longitude === null) {
       Alert.alert('Campos obrigatórios', 'Preencha todos os campos.');
       return;
     }
 
-    console.log('Feira cadastrada:', feira);
-    Alert.alert('Sucesso', 'Feira cadastrada com sucesso!');
-    navigation.goBack();
-  };
+    try {
+      const response = await axios.post('http://192.168.18.17:8080/api/feiras', {
+        nome,
+        local,
+        diasSemana,
+        horario,
+        maxFeirantes: parseInt(maxFeirantes),
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+      });
 
-  const handleMapPress = (e) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    setFeira({ ...feira, latitude, longitude });
+      const data = response.data;
+
+      if (data.success) {
+        Alert.alert('Sucesso', 'Feira cadastrada com sucesso!');
+        navigation.goBack();
+      } else {
+        Alert.alert('Erro', data.message || 'Erro ao cadastrar a feira.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Erro', 'Falha ao conectar com o servidor.');
+    }
   };
 
   return (
@@ -120,13 +134,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
     backgroundColor: '#fff',
-  },
-  titulo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#004AAD',
-    textAlign: 'center',
-    marginBottom: 20,
   },
   inputGroup: {
     marginBottom: 15,

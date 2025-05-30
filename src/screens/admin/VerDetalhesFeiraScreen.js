@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,19 +8,41 @@ import {
   Alert,
   SafeAreaView,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import axios from 'axios';
 
 export default function VerDetalhesFeiraScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { feira } = route.params;
+  const { feira: feiraInicial } = route.params;
+  const [feira, setFeira] = useState(feiraInicial);
 
   const latitude = parseFloat(feira.latitude);
   const longitude = parseFloat(feira.longitude);
-  const vagasRestantes = feira.maxFeirantes - feira.feirantes.length;
+  const vagasRestantes = feira.vagasDisponiveis;
+
+  useFocusEffect(
+    useCallback(() => {
+      const carregarFeiraAtualizada = async () => {
+        try {
+          const resposta = await axios.get(`http://192.168.18.17:8080/api/feiras/${feiraInicial.id}`);
+          if (resposta.data.success) {
+            setFeira(resposta.data.data);
+          } else {
+            Alert.alert('Erro', resposta.data.message || 'Erro ao buscar feira atualizada.');
+          }
+        } catch (erro) {
+          console.error('Erro ao carregar feira:', erro);
+          Alert.alert('Erro', 'Não foi possível atualizar os dados da feira.');
+        }
+      };
+
+      carregarFeiraAtualizada();
+    }, [feiraInicial.id])
+  );
 
   const confirmarExclusao = () => {
     Alert.alert(
@@ -31,9 +53,19 @@ export default function VerDetalhesFeiraScreen() {
         {
           text: 'Excluir',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert('Feira excluída com sucesso!');
-            navigation.goBack();
+          onPress: async () => {
+            try {
+              const resposta = await axios.delete(`http://192.168.18.17:8080/api/feiras/${feira.id}`);
+              if (resposta.data.success) {
+                Alert.alert('✅ Feira excluída com sucesso!');
+                navigation.goBack();
+              } else {
+                Alert.alert('❌ Erro', resposta.data.message);
+              }
+            } catch (erro) {
+              Alert.alert('❌ Erro ao excluir a feira');
+              console.error(erro);
+            }
           },
         },
       ]
@@ -43,7 +75,6 @@ export default function VerDetalhesFeiraScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Detalhes da Feira" />
-
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.card}>
           <Info label="Nome" valor={feira.nome} />
@@ -52,7 +83,7 @@ export default function VerDetalhesFeiraScreen() {
           <Info label="Horário" valor={`${feira.horario}h`} />
           <Info
             label="Feirantes Atuais / Limite"
-            valor={`${feira.feirantes.length} / ${feira.maxFeirantes}`}
+            valor={`${feira.quantidadeFeirantes} / ${feira.maxFeirantes}`}
           />
           <Info label="Vagas Disponíveis" valor={vagasRestantes.toString()} />
         </View>
@@ -103,22 +134,12 @@ const Info = ({ label, valor }) => (
 );
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  safe: { flex: 1, backgroundColor: '#fff' },
   container: {
     padding: 20,
     paddingBottom: 120,
     backgroundColor: '#fff',
     flexGrow: 1,
-  },
-  titulo: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#004AAD',
-    textAlign: 'center',
-    marginBottom: 20,
   },
   subtitulo: {
     fontSize: 18,

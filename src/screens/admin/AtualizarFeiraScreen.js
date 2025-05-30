@@ -14,6 +14,7 @@ import { useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import axios from 'axios';
 
 export default function AtualizarFeiraScreen({ navigation }) {
   const route = useRoute();
@@ -30,7 +31,7 @@ export default function AtualizarFeiraScreen({ navigation }) {
     setFeira({ ...feira, latitude, longitude });
   };
 
-  const handleAtualizar = () => {
+  const handleAtualizar = async () => {
     if (
       !feira.nome ||
       !feira.local ||
@@ -44,9 +45,22 @@ export default function AtualizarFeiraScreen({ navigation }) {
       return;
     }
 
-    console.log('Feira atualizada:', feira);
-    Alert.alert('Sucesso', 'Feira atualizada com sucesso!');
-    navigation.goBack();
+    try {
+      const resposta = await axios.put(
+        `http://192.168.18.17:8080/api/feiras/${feira.id}`,
+        feira
+      );
+
+      if (resposta.data.success) {
+        Alert.alert('✅ Atualização realizada com sucesso!');
+        navigation.goBack();
+      } else {
+        Alert.alert('❌ Erro ao atualizar', resposta.data.message);
+      }
+    } catch (erro) {
+      Alert.alert('❌ Erro na requisição');
+      console.error(erro);
+    }
   };
 
   return (

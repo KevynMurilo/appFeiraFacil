@@ -9,30 +9,34 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 
 export default function GerenciarFeirasScreen() {
   const navigation = useNavigation();
   const [feiras, setFeiras] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch('http://10.1.59.59:8080/api/feiras')
-      .then(res => res.json())
-      .then(json => {
-        if (json.success) {
-          setFeiras(json.data);
-        }
-      })
-      .catch(err => {
-        console.error('Erro ao buscar feiras:', err);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetch('http://192.168.18.17:8080/api/feiras')
+        .then(res => res.json())
+        .then(json => {
+          if (json.success) {
+            setFeiras(json.data);
+          }
+        })
+        .catch(err => {
+          console.error('Erro ao buscar feiras:', err);
+        })
+        .finally(() => setLoading(false));
+    }, [])
+  );
 
   const renderFeira = (feira) => {
-    const vagasOcupadas = feira.feirantes ? feira.feirantes.length : 0;
-    const vagas = feira.maxFeirantes - vagasOcupadas;
+    const vagasOcupadas = feira.quantidadeFeirantes;
+    const vagas = feira.vagasDisponiveis;
 
     return (
       <View key={feira.id} style={styles.card}>
@@ -84,10 +88,7 @@ export default function GerenciarFeirasScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  safe: { flex: 1, backgroundColor: '#fff' },
   acoesContainer: {
     paddingHorizontal: 20,
     paddingTop: 10,

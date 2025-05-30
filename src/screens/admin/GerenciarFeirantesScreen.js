@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,37 +6,44 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function GerenciarFeirantesScreen() {
   const navigation = useNavigation();
+  const [feirantes, setFeirantes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const feirantes = [
-    {
-      id: '1',
-      nome: 'João da Feira',
-      email: 'joao@email.com',
-      telefone: '61999999999',
-      feiras: [{ nome: 'Feira do Centro' }, { nome: 'Feira do Norte' }],
-      banca: {
-        tipoProduto: 'Verduras e Legumes',
-        produtos: ['Alface', 'Cenoura', 'Couve'],
-      },
-    },
-    {
-      id: '2',
-      nome: 'Maria Verdureira',
-      email: 'maria@email.com',
-      telefone: '61988888888',
-      feiras: [{ nome: 'Feira do Sul' }],
-      banca: {
-        tipoProduto: 'Frutas',
-        produtos: ['Banana', 'Maçã', 'Uva'],
-      },
-    },
-  ];
+  useFocusEffect(
+    useCallback(() => {
+      const carregarFeirantes = async () => {
+        try {
+          const token = await AsyncStorage.getItem('token');
+          const response = await axios.get('http://192.168.18.17:8080/api/feirantes', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (response.data.success) {
+            setFeirantes(response.data.data);
+          } else {
+            Alert.alert('Erro', response.data.message || 'Falha ao carregar feirantes');
+          }
+        } catch (error) {
+          console.error('Erro ao carregar feirantes:', error);
+          Alert.alert('Erro', 'Erro ao buscar feirantes do servidor.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      setLoading(true); // mostra loading sempre que reentra
+      carregarFeirantes();
+    }, [])
+  );
 
   const renderFeirante = (feirante) => (
     <View key={feirante.id} style={styles.card}>
@@ -45,9 +52,7 @@ export default function GerenciarFeirantesScreen() {
 
       <TouchableOpacity
         style={styles.botaoInterno}
-        onPress={() =>
-          navigation.navigate('VerDetalhesFeirante', { feirante })
-        }
+        onPress={() => navigation.navigate('VerDetalhesFeirante', { feirante })}
       >
         <Text style={styles.botaoInternoTexto}>Ver Detalhes</Text>
       </TouchableOpacity>
@@ -56,10 +61,17 @@ export default function GerenciarFeirantesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-
-      <ScrollView contentContainerStyle={styles.container}>
-        {feirantes.map(renderFeirante)}
-      </ScrollView>
+      {loading ? (
+        <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 40 }} />
+      ) : (
+        <ScrollView contentContainerStyle={styles.container}>
+          {feirantes.length > 0 ? (
+            feirantes.map(renderFeirante)
+          ) : (
+            <Text style={{ textAlign: 'center', marginTop: 30 }}>Nenhum feirante encontrado.</Text>
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
