@@ -19,7 +19,6 @@ export default function FeiranteDrawer() {
       <Drawer.Screen name="Cadastrar Banca" component={CadastrarBancaScreen} />
       <Drawer.Screen name="Gerenciar Substitutos" component={GerenciarSubstitutosScreen} />
       <Drawer.Screen name="Solicitações Recebidas" component={SolicitacoesSubstitutoScreen} />
-      <Drawer.Screen name="Solicitar Substituto" component={SolicitarSubstitutoScreen} />
 
     </Drawer.Navigator>
   );

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   View,
   Text,
@@ -7,6 +6,7 @@ import {
   Alert,
 } from 'react-native';
 import { DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 export default function DrawerVisual(props) {
@@ -18,7 +18,21 @@ export default function DrawerVisual(props) {
       {
         text: 'Sair',
         style: 'destructive',
-        onPress: () => navigation.replace('Login'),
+        onPress: async () => {
+          try {
+            await AsyncStorage.multiRemove([
+              'token',
+              'tipoUsuario',
+              'usuarioId',
+              'usuarioNome',
+              'dataHoraLogin',
+            ]);
+          } catch (error) {
+            console.error('Erro ao limpar AsyncStorage:', error);
+          }
+
+          navigation.replace('Login');
+        },
       },
     ]);
   };

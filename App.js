@@ -5,6 +5,7 @@ import FlashMessage from 'react-native-flash-message';
 
 import { iniciarWebSocketComNotificacoes } from './src/config/websocketNotificacao';
 
+import SplashScreen from './src/screens/SplashScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import CadastroFeiranteScreen from './src/screens/feirante/CadastroFeiranteScreen';
 import VerDetalhesFeiranteScreen from './src/screens/admin/VerDetalhesFeiranteScreen';
@@ -14,10 +15,10 @@ import VerDetalhesFeiraScreen from './src/screens/admin/VerDetalhesFeiraScreen';
 
 import FeiranteDrawer from './src/navigation/FeiranteDrawer';
 import AdminDrawer from './src/navigation/AdminDrawer';
-import CadastrarSubstitutoScreen from './src/screens/feirante/CadastrarSubstitutoScreen';
 import VerQrCodeScreen from './src/screens/feirante/VerQrCodeScreen';
 import VerBancaScreen from './src/screens/feirante/MinhaBancaScreen';
 import ConfirmarCheckinScreen from './src/screens/admin/ConfirmarCheckinScreen';
+import SolicitarSubstitutoScreen from './src/screens/feirante/SolicitarSubstitutoScreen';
 
 const Stack = createStackNavigator();
 
@@ -30,19 +31,22 @@ export default function App() {
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Login"
+          initialRouteName="Splash"
           screenOptions={{
             headerShown: false,
             ...TransitionPresets.SlideFromRightIOS,
           }}
         >
+          {/* Tela inicial que decide o fluxo */}
+          <Stack.Screen name="Splash" component={SplashScreen} />
+
           {/* Acesso geral */}
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Cadastro" component={CadastroFeiranteScreen} />
 
           {/* Feirante */}
           <Stack.Screen name="FeiranteDrawer" component={FeiranteDrawer} />
-          <Stack.Screen name="CadastrarSubstituto" component={CadastrarSubstitutoScreen} />
+          <Stack.Screen name="Solicitar-Substituto" component={SolicitarSubstitutoScreen} />
           <Stack.Screen name="VerQrCode" component={VerQrCodeScreen} />
           <Stack.Screen name="VerMinhaBanca" component={VerBancaScreen} />
 
@@ -56,7 +60,6 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
 
-      {/* Componente de mensagens visuais no topo */}
       <FlashMessage position="top" />
     </>
   );

@@ -6,18 +6,57 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 
 export default function VerBancaScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { banca } = route.params;
 
+  const confirmarRemocao = () => {
+    Alert.alert(
+      'Remover Banca',
+      'Tem certeza que deseja remover esta banca? Essa ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: deletarBanca,
+        },
+      ]
+    );
+  };
+
+  const deletarBanca = async () => {
+    try {
+      const response = await axios.delete(`http://10.1.59.59:8080/api/bancas/${banca.id}`);
+      const res = response.data;
+
+      if (res.success) {
+        Alert.alert('Sucesso', 'Banca removida com sucesso!');
+        navigation.goBack();
+      } else {
+        Alert.alert('Erro', res.message || 'Erro ao remover banca.');
+      }
+    } catch (error) {
+      console.error('Erro ao deletar banca:', error);
+      Alert.alert('Erro', 'Falha na comunicação com o servidor.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Detalhes da Banca" />
+
+      <TouchableOpacity style={styles.iconeLixeira} onPress={confirmarRemocao}>
+        <Ionicons name="trash-outline" size={26} color="#FF4D4D" />
+      </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.card}>
@@ -60,6 +99,12 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  iconeLixeira: {
+    alignSelf: 'flex-end',
+    marginRight: 20,
+    marginTop: 8,
+    padding: 4,
   },
   container: {
     padding: 20,

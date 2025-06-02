@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function SolicitacoesSubstitutoScreen() {
   const [solicitacoes, setSolicitacoes] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     carregarSolicitacoes();
@@ -32,7 +34,7 @@ export default function SolicitacoesSubstitutoScreen() {
       }
 
       const response = await axios.get(
-        `http://192.168.18.17:8080/api/solicitacar-substitutos/recebidas/${usuarioId}?status=PENDENTE`,
+        `http://10.1.59.59:8080/api/solicitacar-substitutos/recebidas/${usuarioId}?status=PENDENTE`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -50,8 +52,14 @@ export default function SolicitacoesSubstitutoScreen() {
       Alert.alert('Erro', 'Não foi possível carregar as solicitações.');
     } finally {
       setCarregando(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    carregarSolicitacoes();
+  }, []);
 
   const responderSolicitacao = async (id, acao) => {
     try {
@@ -61,7 +69,7 @@ export default function SolicitacoesSubstitutoScreen() {
         return;
       }
 
-      const url = `http://192.168.18.17:8080/api/solicitacar-substitutos/${id}/${acao}`;
+      const url = `http://10.1.59.59:8080/api/solicitacar-substitutos/${id}/${acao}`;
       const response = await axios.patch(url, null, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -81,8 +89,13 @@ export default function SolicitacoesSubstitutoScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {carregando ? (
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />
+        }
+      >
+        {carregando && !refreshing ? (
           <ActivityIndicator size="large" color="#004AAD" />
         ) : solicitacoes.length === 0 ? (
           <Text style={styles.textoVazio}>Nenhuma solicitação pendente.</Text>

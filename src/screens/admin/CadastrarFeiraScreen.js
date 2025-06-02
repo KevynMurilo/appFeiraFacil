@@ -46,7 +46,7 @@ export default function CadastrarFeiraScreen() {
     }
 
     try {
-      const response = await axios.post('http://192.168.18.17:8080/api/feiras', {
+      const response = await axios.post('http://10.1.59.59:8080/api/feiras', {
         nome,
         local,
         diasSemana,

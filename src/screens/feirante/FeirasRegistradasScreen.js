@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,37 +19,44 @@ export default function FeirasRegistradasScreen() {
   const navigation = useNavigation();
   const [feiras, setFeiras] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const carregarFeiras = async () => {
+    try {
+      setCarregando(true);
+      const usuarioId = await AsyncStorage.getItem('usuarioId');
+      if (!usuarioId) return;
+
+      const response = await axios.get(
+        `http://10.1.59.59:8080/api/feiras/com-banca/${usuarioId}`
+      );
+
+      const res = response.data;
+
+      if (res.success && res.data) {
+        setFeiras(res.data);
+      } else {
+        setFeiras([]);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar feiras registradas:', err);
+      Alert.alert('Erro', 'Não foi possível carregar as feiras.');
+    } finally {
+      setCarregando(false);
+      setRefreshing(false);
+    }
+  };
 
   useFocusEffect(
-    React.useCallback(() => {
-      const carregarFeiras = async () => {
-        setCarregando(true);
-        try {
-          const usuarioId = await AsyncStorage.getItem('usuarioId');
-          if (!usuarioId) return;
-
-          const response = await axios.get(
-            `http://192.168.18.17:8080/api/feiras/com-banca/${usuarioId}`
-          );
-
-          const res = response.data;
-
-          if (res.success && res.data) {
-            setFeiras(res.data);
-          } else {
-            setFeiras([]);
-          }
-        } catch (err) {
-          console.error('Erro ao buscar feiras registradas:', err);
-          Alert.alert('Erro', 'Não foi possível carregar as feiras.');
-        } finally {
-          setCarregando(false);
-        }
-      };
-
+    useCallback(() => {
       carregarFeiras();
     }, [])
   );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    carregarFeiras();
+  }, []);
 
   const renderFeira = (feira) => (
     <View key={feira.id} style={styles.card}>
@@ -69,7 +77,7 @@ export default function FeirasRegistradasScreen() {
           try {
             const feiranteId = await AsyncStorage.getItem('usuarioId');
             const response = await axios.get(
-              `http://192.168.18.17:8080/api/bancas/feirante/${feiranteId}/feira/${feira.id}`
+              `http://10.1.59.59:8080/api/bancas/feirante/${feiranteId}/feira/${feira.id}`
             );
             const res = response.data;
 
@@ -96,8 +104,13 @@ export default function FeirasRegistradasScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        {carregando ? (
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />
+        }
+      >
+        {carregando && !refreshing ? (
           <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 50 }} />
         ) : feiras.length > 0 ? (
           feiras.map(renderFeira)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   ScrollView,
   Platform,
   SafeAreaView,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
@@ -23,25 +25,39 @@ export default function CadastrarBancaScreen() {
   const [produtos, setProdutos] = useState([]);
   const [feiraSelecionada, setFeiraSelecionada] = useState('');
   const [feirasDisponiveis, setFeirasDisponiveis] = useState([]);
+  const [carregandoFeiras, setCarregandoFeiras] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [mensagemErro, setMensagemErro] = useState('');
   const [mensagemSucesso, setMensagemSucesso] = useState('');
 
-  useEffect(() => {
-    const carregarFeiras = async () => {
-      try {
-        const response = await axios.get('http://192.168.18.17:8080/api/feiras');
-        const res = response.data;
+  const carregarFeiras = async () => {
+    setCarregandoFeiras(true);
+    setMensagemErro('');
+    try {
+      const response = await axios.get('http://10.1.59.59:8080/api/feiras');
+      const res = response.data;
 
-        if (res.success && res.data) {
-          setFeirasDisponiveis(res.data);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar feiras:', error);
-        setMensagemErro('Erro ao carregar feiras disponíveis.');
+      if (res.success && res.data) {
+        setFeirasDisponiveis(res.data);
+      } else {
+        setMensagemErro(res.message || 'Erro ao carregar feiras.');
       }
-    };
+    } catch (error) {
+      console.error('Erro ao carregar feiras:', error);
+      setMensagemErro('Erro ao carregar feiras disponíveis.');
+    } finally {
+      setCarregandoFeiras(false);
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
+    carregarFeiras();
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
     carregarFeiras();
   }, []);
 
@@ -50,6 +66,12 @@ export default function CadastrarBancaScreen() {
       setProdutos([...produtos, produtoAtual.trim()]);
       setProdutoAtual('');
     }
+  };
+
+  const removerProduto = (index) => {
+    const novaLista = [...produtos];
+    novaLista.splice(index, 1);
+    setProdutos(novaLista);
   };
 
   const handleCadastrar = async () => {
@@ -75,11 +97,16 @@ export default function CadastrarBancaScreen() {
         feiranteId,
       };
 
-      const response = await axios.post('http://192.168.18.17:8080/api/bancas', payload);
+      const response = await axios.post('http://10.1.59.59:8080/api/bancas', payload);
       const res = response.data;
 
       if (res.success) {
         setMensagemSucesso('Banca cadastrada com sucesso!');
+        // 🧹 Limpa os campos após sucesso
+        setTipoProduto('');
+        setProdutoAtual('');
+        setProdutos([]);
+        setFeiraSelecionada('');
         setTimeout(() => navigation.goBack(), 1500);
       } else {
         setMensagemErro(res.message || 'Erro ao cadastrar banca.');
@@ -92,22 +119,33 @@ export default function CadastrarBancaScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />
+        }
+      >
         {mensagemErro !== '' && <Text style={styles.alertaErro}>❌ {mensagemErro}</Text>}
         {mensagemSucesso !== '' && <Text style={styles.alertaSucesso}>✅ {mensagemSucesso}</Text>}
 
         <Text style={styles.label}>📍 Selecione a feira</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={feiraSelecionada}
-            onValueChange={(itemValue) => setFeiraSelecionada(itemValue)}
-          >
-            <Picker.Item label="Selecione uma feira" value="" />
-            {feirasDisponiveis.map((feira) => (
-              <Picker.Item key={feira.id} label={feira.nome} value={feira.id} />
-            ))}
-          </Picker>
-        </View>
+        {carregandoFeiras ? (
+          <ActivityIndicator size="large" color="#004AAD" />
+        ) : feirasDisponiveis.length === 0 ? (
+          <Text style={styles.semFeiraTexto}>Nenhuma feira disponível no momento.</Text>
+        ) : (
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={feiraSelecionada}
+              onValueChange={(itemValue) => setFeiraSelecionada(itemValue)}
+            >
+              <Picker.Item label="Selecione uma feira" value="" />
+              {feirasDisponiveis.map((feira) => (
+                <Picker.Item key={feira.id} label={feira.nome} value={feira.id} />
+              ))}
+            </Picker>
+          </View>
+        )}
 
         <Text style={styles.label}>🧺 Tipo de Produto</Text>
         <TextInput
@@ -135,7 +173,12 @@ export default function CadastrarBancaScreen() {
             <Text style={styles.label}>✅ Produtos Adicionados</Text>
             <View style={styles.cardProdutos}>
               {produtos.map((p, idx) => (
-                <Text key={idx} style={styles.produtoItem}>• {p}</Text>
+                <View key={idx} style={styles.produtoLinha}>
+                  <Text style={styles.produtoItem}>• {p}</Text>
+                  <TouchableOpacity onPress={() => removerProduto(idx)}>
+                    <Ionicons name="close-circle" size={20} color="#FF4D4D" />
+                  </TouchableOpacity>
+                </View>
               ))}
             </View>
           </View>
@@ -192,6 +235,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: '#F9FAFB',
   },
+  semFeiraTexto: {
+    fontStyle: 'italic',
+    color: '#999',
+    marginBottom: 10,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -219,10 +267,15 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 8,
   },
+  produtoLinha: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
   produtoItem: {
     fontSize: 15,
     color: '#333',
-    marginBottom: 6,
   },
   botao: {
     backgroundColor: '#004AAD',

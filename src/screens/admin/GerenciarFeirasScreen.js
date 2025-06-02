@@ -6,33 +6,47 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 
 export default function GerenciarFeirasScreen() {
   const navigation = useNavigation();
   const [feiras, setFeiras] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const carregarFeiras = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('http://10.1.59.59:8080/api/feiras');
+      const json = await res.json();
+      if (json.success && json.data) {
+        setFeiras(json.data);
+      } else {
+        setFeiras([]);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar feiras:', err);
+      setFeiras([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      fetch('http://192.168.18.17:8080/api/feiras')
-        .then(res => res.json())
-        .then(json => {
-          if (json.success) {
-            setFeiras(json.data);
-          }
-        })
-        .catch(err => {
-          console.error('Erro ao buscar feiras:', err);
-        })
-        .finally(() => setLoading(false));
+      carregarFeiras();
     }, [])
   );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    carregarFeiras();
+  }, []);
 
   const renderFeira = (feira) => {
     const vagasOcupadas = feira.quantidadeFeirantes;
@@ -76,11 +90,20 @@ export default function GerenciarFeirasScreen() {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
+      {loading && !refreshing ? (
         <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#004AAD" />
       ) : (
-        <ScrollView contentContainerStyle={styles.container}>
-          {feiras.map(renderFeira)}
+        <ScrollView
+          contentContainerStyle={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />
+          }
+        >
+          {feiras.length === 0 ? (
+            <Text style={styles.msgVazia}>Nenhuma feira encontrada.</Text>
+          ) : (
+            feiras.map(renderFeira)
+          )}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -111,6 +134,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
     backgroundColor: '#fff',
+    flexGrow: 1,
+  },
+  msgVazia: {
+    textAlign: 'center',
+    color: '#777',
+    fontSize: 15,
+    marginTop: 40,
   },
   card: {
     backgroundColor: '#F2F6FF',

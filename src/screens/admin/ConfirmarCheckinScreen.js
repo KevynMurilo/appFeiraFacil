@@ -27,7 +27,7 @@ export default function ConfirmarCheckinScreen() {
     const carregarDados = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get(`http://192.168.18.17:8080/api/bancas/por-qr/${qrCode}`, {
+        const res = await axios.get(`http://10.1.59.59:8080/api/bancas/por-qr/${qrCode}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -58,7 +58,7 @@ export default function ConfirmarCheckinScreen() {
         const token = await AsyncStorage.getItem('token');
 
         const response = await axios.post(
-        `http://192.168.18.17:8080/api/checkins`,
+        `http://10.1.59.59:8080/api/checkins`,
         null,
         {
             params: {
