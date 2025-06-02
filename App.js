@@ -21,6 +21,8 @@ import ConfirmarCheckinScreen from './src/screens/admin/ConfirmarCheckinScreen';
 import SolicitarSubstitutoScreen from './src/screens/feirante/SolicitarSubstitutoScreen';
 import VisualizarFilaEsperaScreen from './src/screens/admin/VisualizarFilaEsperaScreen';
 import FeirantesComTresFaltasScreen from './src/screens/admin/FeirantesComTresFaltasScreen';
+import VerJustificativasFeiranteScreen from './src/screens/admin/VerJustificativasFeiranteScreen';
+import SubstituirFeiranteScreen from './src/screens/admin/SubstituirFeiranteScreen';
 
 const Stack = createStackNavigator();
 
@@ -61,6 +63,8 @@ export default function App() {
           <Stack.Screen name="ConfirmarCheckin" component={ConfirmarCheckinScreen} />
           <Stack.Screen name="VisualizarFilaEspera" component={VisualizarFilaEsperaScreen} />
           <Stack.Screen name="FeirantesComTresFaltas" component={FeirantesComTresFaltasScreen} />
+          <Stack.Screen name="VerJustificativasFeirante" component={VerJustificativasFeiranteScreen} />
+          <Stack.Screen name="SubstituirFeirante" component={SubstituirFeiranteScreen} />
         </Stack.Navigator>
       </NavigationContainer>
 

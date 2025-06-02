@@ -9,18 +9,16 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import {
-  MaterialCommunityIcons,
-  Ionicons,
-} from '@expo/vector-icons';
-import TopoNavegacao from '../../components/TopoNavegacao';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import TopoNavegacao from '../../components/TopoNavegacao';
 
-export default function VerDetalhesFeiranteScreen() {
+export default function SubstituirFeiranteScreen() {
   const route = useRoute();
-  const { feiranteId, idFila } = route.params;
+  const navigation = useNavigation();
+  const { feiranteId, feiraId } = route.params;
 
   const [feirante, setFeirante] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -28,20 +26,12 @@ export default function VerDetalhesFeiranteScreen() {
   const buscarFeirante = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Erro', 'Token não encontrado.');
-        return;
-      }
-
       const res = await axios.get(
         `http://192.168.18.17:8080/api/feirantes/${feiranteId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       if (res.data.success) {
         setFeirante(res.data.data);
       } else {
@@ -49,37 +39,33 @@ export default function VerDetalhesFeiranteScreen() {
       }
     } catch (error) {
       console.error(error);
-      Alert.alert('Erro', 'Não foi possível carregar os dados do feirante.');
+      Alert.alert('Erro', 'Falha ao buscar os dados do feirante.');
     } finally {
       setCarregando(false);
     }
   };
 
-  const ativarFeirante = async () => {
+  const substituirFeirante = async () => {
     Alert.alert(
-      'Confirmar ativação',
-      'Deseja realmente ativar este feirante?',
+      'Confirmar substituição',
+      'Deseja realmente substituir este feirante pelo próximo da fila?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Ativar',
+          text: 'Substituir',
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem('token');
-              await axios.patch(
-                `http://192.168.18.17:8080/api/fila-espera/${idFila}/status?status=ATIVO`,
+              await axios.post(
+                `http://192.168.18.17:8080/api/fila-espera/substituir/${feiraId}?feiranteId=${feiranteId}`,
                 {},
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
+                { headers: { Authorization: `Bearer ${token}` } }
               );
-              Alert.alert('Sucesso', 'Feirante ativado com sucesso!');
-              buscarFeirante();
+              Alert.alert('Sucesso', 'Feirante substituído com sucesso!');
+              navigation.goBack();
             } catch (err) {
               console.error(err);
-              Alert.alert('Erro', 'Falha ao ativar feirante.');
+              Alert.alert('Erro', 'Erro ao substituir feirante.');
             }
           },
         },
@@ -116,13 +102,12 @@ export default function VerDetalhesFeiranteScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo="Feirante" />
-
+      <TopoNavegacao titulo="Substituir Feirante" />
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="person-circle-outline" size={24} color="#004AAD" />
-            <Text style={styles.cardTitulo}>Informações Pessoais</Text>
+            <Text style={styles.cardTitulo}>Informações do Feirante</Text>
           </View>
 
           <Text style={styles.label}>Nome</Text>
@@ -130,9 +115,6 @@ export default function VerDetalhesFeiranteScreen() {
 
           <Text style={styles.label}>CPF</Text>
           <Text style={styles.valor}>{feirante.cpf}</Text>
-
-          <Text style={styles.label}>E-mail</Text>
-          <Text style={styles.valor}>{feirante.email}</Text>
 
           <Text style={styles.label}>Telefone</Text>
           <Text style={styles.valor}>{feirante.telefone}</Text>
@@ -145,11 +127,9 @@ export default function VerDetalhesFeiranteScreen() {
             {new Date(feirante.dataCadastro).toLocaleDateString('pt-BR')}
           </Text>
 
-          {!feirante.ativo && idFila && (
-            <TouchableOpacity style={styles.botaoAtivar} onPress={ativarFeirante}>
-              <Text style={styles.botaoTexto}>Ativar Feirante</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.botaoSubstituir} onPress={substituirFeirante}>
+            <Text style={styles.botaoTexto}>Substituir por Próximo da Fila</Text>
+          </TouchableOpacity>
         </View>
 
         {bancasPorFeira &&
@@ -245,10 +225,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 40,
   },
-  botaoAtivar: {
-    backgroundColor: '#004AAD',
+  botaoSubstituir: {
+    backgroundColor: '#D32F2F',
     marginTop: 20,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 6,
   },
   botaoTexto: {

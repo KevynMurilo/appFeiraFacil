@@ -47,7 +47,7 @@ export default function AtualizarFeiraScreen({ navigation }) {
 
     try {
       const resposta = await axios.put(
-        `http://10.1.59.59:8080/api/feiras/${feira.id}`,
+        `http://192.168.18.17:8080/api/feiras/${feira.id}`,
         feira
       );
 

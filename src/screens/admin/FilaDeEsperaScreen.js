@@ -21,7 +21,7 @@ export default function FilaDeEsperaScreen() {
   useEffect(() => {
     const carregarFeiras = async () => {
       try {
-        const response = await axios.get('http://10.1.59.59:8080/api/feiras');
+        const response = await axios.get('http://192.168.18.17:8080/api/feiras');
         const res = response.data;
         if (res.success) {
           setFeiras(res.data);

@@ -23,7 +23,7 @@ export default function GerenciarFeirantesScreen() {
       const carregarFeirantes = async () => {
         try {
           const token = await AsyncStorage.getItem('token');
-          const response = await axios.get('http://10.1.59.59:8080/api/feirantes', {
+          const response = await axios.get('http://192.168.18.17:8080/api/feirantes', {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   botaoInterno: {
-    backgroundColor: '#00AEEF',
+    backgroundColor: '#004AAD',
     paddingVertical: 10,
     borderRadius: 6,
   },

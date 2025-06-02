@@ -40,7 +40,7 @@ export default function CadastroFeiranteScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post('http://10.1.59.59:8080/api/feirantes', form);
+      const response = await axios.post('http://192.168.18.17:8080/api/feirantes', form);
       const res = response.data;
 
       if (res.success) {

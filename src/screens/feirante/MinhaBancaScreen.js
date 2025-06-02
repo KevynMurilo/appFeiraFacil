@@ -35,7 +35,7 @@ export default function VerBancaScreen() {
 
   const deletarBanca = async () => {
     try {
-      const response = await axios.delete(`http://10.1.59.59:8080/api/bancas/${banca.id}`);
+      const response = await axios.delete(`http://192.168.18.17:8080/api/bancas/${banca.id}`);
       const res = response.data;
 
       if (res.success) {

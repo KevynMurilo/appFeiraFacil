@@ -25,7 +25,7 @@ export default function VisualizarFilaEsperaScreen({ route }) {
     setCarregando(true);
     try {
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/fila-espera/feira/${feira.id}`
+        `http://192.168.18.17:8080/api/fila-espera/feira/${feira.id}`
       );
       const res = response.data;
       if (res.success) {
@@ -55,7 +55,7 @@ export default function VisualizarFilaEsperaScreen({ route }) {
   const ativarFeirante = async (idFila) => {
     try {
       await axios.patch(
-        `http://10.1.59.59:8080/api/fila-espera/${idFila}/status?status=ATIVO`
+        `http://192.168.18.17:8080/api/fila-espera/${idFila}/status?status=ATIVO`
       );
       Alert.alert('Sucesso', 'Feirante ativado com sucesso!');
       buscarFila();

@@ -28,7 +28,7 @@ export default function VerDetalhesFeiraScreen() {
     useCallback(() => {
       const carregarFeiraAtualizada = async () => {
         try {
-          const resposta = await axios.get(`http://10.1.59.59:8080/api/feiras/${feiraInicial.id}`);
+          const resposta = await axios.get(`http://192.168.18.17:8080/api/feiras/${feiraInicial.id}`);
           if (resposta.data.success) {
             setFeira(resposta.data.data);
           } else {
@@ -55,7 +55,7 @@ export default function VerDetalhesFeiraScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const resposta = await axios.delete(`http://10.1.59.59:8080/api/feiras/${feira.id}`);
+              const resposta = await axios.delete(`http://192.168.18.17:8080/api/feiras/${feira.id}`);
               if (resposta.data.success) {
                 Alert.alert('✅ Feira excluída com sucesso!');
                 navigation.goBack();

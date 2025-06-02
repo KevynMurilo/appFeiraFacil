@@ -34,7 +34,7 @@ export default function SolicitacoesSubstitutoScreen() {
       }
 
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/solicitacar-substitutos/recebidas/${usuarioId}?status=PENDENTE`,
+        `http://192.168.18.17:8080/api/solicitacar-substitutos/recebidas/${usuarioId}?status=PENDENTE`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -69,7 +69,7 @@ export default function SolicitacoesSubstitutoScreen() {
         return;
       }
 
-      const url = `http://10.1.59.59:8080/api/solicitacar-substitutos/${id}/${acao}`;
+      const url = `http://192.168.18.17:8080/api/solicitacar-substitutos/${id}/${acao}`;
       const response = await axios.patch(url, null, {
         headers: { Authorization: `Bearer ${token}` },
       });

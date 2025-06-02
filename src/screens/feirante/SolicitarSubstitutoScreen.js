@@ -42,7 +42,7 @@ export default function SolicitarSubstitutoScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/feirantes/buscar?cpf=${cpf}`,
+        `http://192.168.18.17:8080/api/feirantes/buscar?cpf=${cpf}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -86,7 +86,7 @@ export default function SolicitarSubstitutoScreen() {
       };
 
       const response = await axios.post(
-        'http://10.1.59.59:8080/api/solicitacar-substitutos/enviar',
+        'http://192.168.18.17:8080/api/solicitacar-substitutos/enviar',
         payload,
         {
           headers: {
