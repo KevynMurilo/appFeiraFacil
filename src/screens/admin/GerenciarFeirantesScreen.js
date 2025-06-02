@@ -40,7 +40,7 @@ export default function GerenciarFeirantesScreen() {
         }
       };
 
-      setLoading(true); // mostra loading sempre que reentra
+      setLoading(true); 
       carregarFeirantes();
     }, [])
   );
@@ -52,7 +52,7 @@ export default function GerenciarFeirantesScreen() {
 
       <TouchableOpacity
         style={styles.botaoInterno}
-        onPress={() => navigation.navigate('VerDetalhesFeirante', { feirante })}
+        onPress={() => navigation.navigate('VerDetalhesFeirante', { feiranteId: feirante.id })}
       >
         <Text style={styles.botaoInternoTexto}>Ver Detalhes</Text>
       </TouchableOpacity>

@@ -19,6 +19,8 @@ import VerQrCodeScreen from './src/screens/feirante/VerQrCodeScreen';
 import VerBancaScreen from './src/screens/feirante/MinhaBancaScreen';
 import ConfirmarCheckinScreen from './src/screens/admin/ConfirmarCheckinScreen';
 import SolicitarSubstitutoScreen from './src/screens/feirante/SolicitarSubstitutoScreen';
+import VisualizarFilaEsperaScreen from './src/screens/admin/VisualizarFilaEsperaScreen';
+import FeirantesComTresFaltasScreen from './src/screens/admin/FeirantesComTresFaltasScreen';
 
 const Stack = createStackNavigator();
 
@@ -57,6 +59,8 @@ export default function App() {
           <Stack.Screen name="CadastrarFeira" component={CadastrarFeiraScreen} />
           <Stack.Screen name="AtualizarFeira" component={AtualizarFeiraScreen} />
           <Stack.Screen name="ConfirmarCheckin" component={ConfirmarCheckinScreen} />
+          <Stack.Screen name="VisualizarFilaEspera" component={VisualizarFilaEsperaScreen} />
+          <Stack.Screen name="FeirantesComTresFaltas" component={FeirantesComTresFaltasScreen} />
         </Stack.Navigator>
       </NavigationContainer>
 
