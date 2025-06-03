@@ -25,7 +25,7 @@ export default function VerJustificativasFeiranteScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
-        `http://192.168.18.17:8080/api/justificativas/feirante/${feiranteId}`,
+        `http://10.1.59.59:8080/api/justificativas/feirante/${feiranteId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -48,7 +48,7 @@ export default function VerJustificativasFeiranteScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.put(
-        `http://192.168.18.17:8080/api/justificativas/${id}/status?aceita=${aceita}`,
+        `http://10.1.59.59:8080/api/justificativas/${id}/status?aceita=${aceita}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },

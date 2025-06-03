@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -22,26 +23,29 @@ export default function SubstituirFeiranteScreen() {
 
   const [feirante, setFeirante] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const buscarFeirante = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
-        `http://192.168.18.17:8080/api/feirantes/${feiranteId}`,
+        `http://10.1.59.59:8080/api/fila-espera/proximo-ativo?idFeira=${feiraId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       if (res.data.success) {
         setFeirante(res.data.data);
       } else {
-        Alert.alert('Erro', res.data.message || 'Erro ao buscar feirante.');
+        setFeirante(null); 
       }
     } catch (error) {
-      console.error(error);
-      Alert.alert('Erro', 'Falha ao buscar os dados do feirante.');
+      console.warn('Feirante ativo não encontrado ou erro de rede:', error?.response?.data || error.message);
+      setFeirante(null);
     } finally {
       setCarregando(false);
+      setRefreshing(false);
     }
   };
 
@@ -57,7 +61,7 @@ export default function SubstituirFeiranteScreen() {
             try {
               const token = await AsyncStorage.getItem('token');
               const response = await axios.post(
-                `http://192.168.18.17:8080/api/fila-espera/substituir?idFeira=${feiraId}&idFeiranteInativo=${feiranteId}`,
+                `http://10.1.59.59:8080/api/fila-espera/substituir?idFeira=${feiraId}&idFeiranteInativo=${feiranteId}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -81,6 +85,11 @@ export default function SubstituirFeiranteScreen() {
     );
   };
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    buscarFeirante();
+  }, []);
+
   useEffect(() => {
     buscarFeirante();
   }, []);
@@ -96,7 +105,15 @@ export default function SubstituirFeiranteScreen() {
   if (!feirante) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Text style={styles.erro}>Erro ao carregar os dados do feirante.</Text>
+        <TopoNavegacao titulo="Substituir Feirante" />
+        <ScrollView
+          contentContainerStyle={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <Text style={styles.erro}>Nenhum feirante ativo na fila para substituição.</Text>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -111,7 +128,12 @@ export default function SubstituirFeiranteScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Substituir Feirante" />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="person-circle-outline" size={24} color="#004AAD" />
@@ -127,8 +149,8 @@ export default function SubstituirFeiranteScreen() {
           <Text style={styles.label}>Telefone</Text>
           <Text style={styles.valor}>{feirante.telefone}</Text>
 
-          <Text style={styles.label}>Ativo</Text>
-          <Text style={styles.valor}>{feirante.ativo ? 'Sim' : 'Não'}</Text>
+          <Text style={styles.label}>Status</Text>
+          <Text style={styles.valor}>{feirante.status}</Text>
 
           <Text style={styles.label}>Data de Cadastro</Text>
           <Text style={styles.valor}>
@@ -229,7 +251,7 @@ const styles = StyleSheet.create({
   },
   erro: {
     textAlign: 'center',
-    color: 'red',
+    color: '#666',
     fontSize: 18,
     marginTop: 40,
   },

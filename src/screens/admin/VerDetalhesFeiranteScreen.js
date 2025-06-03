@@ -28,18 +28,9 @@ export default function VerDetalhesFeiranteScreen() {
   const buscarFeirante = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert('Erro', 'Token não encontrado.');
-        return;
-      }
-
       const res = await axios.get(
-        `http://192.168.18.17:8080/api/feirantes/${feiranteId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `http://10.1.59.59:8080/api/feirantes/${feiranteId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (res.data.success) {
@@ -67,13 +58,9 @@ export default function VerDetalhesFeiranteScreen() {
             try {
               const token = await AsyncStorage.getItem('token');
               await axios.patch(
-                `http://192.168.18.17:8080/api/fila-espera/${idFila}/status?status=ATIVO`,
+                `http://10.1.59.59:8080/api/fila-espera/${idFila}/status?status=ATIVO`,
                 {},
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
+                { headers: { Authorization: `Bearer ${token}` } }
               );
               Alert.alert('Sucesso', 'Feirante ativado com sucesso!');
               buscarFeirante();
@@ -114,6 +101,24 @@ export default function VerDetalhesFeiranteScreen() {
     return map;
   }, {});
 
+  const statusLabel = {
+    ATIVO: 'Ativo na feira',
+    INATIVO: 'Inativo',
+    SUBSTITUIDO_POR_FALTAS: 'Substituído por faltas',
+    AGUARDANDO_REVISÃO: 'Aguardando revisão',
+    BLOQUEADO: 'Bloqueado',
+    NA_FILA_DE_ESPERA: 'Na fila de espera',
+  };
+
+  const statusCor = {
+    ATIVO: '#388E3C',
+    INATIVO: '#757575',
+    SUBSTITUIDO_POR_FALTAS: '#D32F2F',
+    AGUARDANDO_REVISÃO: '#F9A825',
+    BLOQUEADO: '#C62828',
+    NA_FILA_DE_ESPERA: '#1976D2',
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Feirante" />
@@ -137,15 +142,17 @@ export default function VerDetalhesFeiranteScreen() {
           <Text style={styles.label}>Telefone</Text>
           <Text style={styles.valor}>{feirante.telefone}</Text>
 
-          <Text style={styles.label}>Ativo</Text>
-          <Text style={styles.valor}>{feirante.ativo ? 'Sim' : 'Não'}</Text>
+          <Text style={styles.label}>Status</Text>
+          <Text style={[styles.valor, { color: statusCor[feirante.status] || '#333', fontWeight: 'bold' }]}>
+            {statusLabel[feirante.status] || feirante.status}
+          </Text>
 
           <Text style={styles.label}>Data de Cadastro</Text>
           <Text style={styles.valor}>
             {new Date(feirante.dataCadastro).toLocaleDateString('pt-BR')}
           </Text>
 
-          {!feirante.ativo && idFila && (
+          {feirante.status !== 'ATIVO' && idFila && (
             <TouchableOpacity style={styles.botaoAtivar} onPress={ativarFeirante}>
               <Text style={styles.botaoTexto}>Ativar Feirante</Text>
             </TouchableOpacity>

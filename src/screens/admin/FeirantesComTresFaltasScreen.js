@@ -44,7 +44,7 @@ export default function FeirantesComFaltasScreen() {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
 
-      let url = `http://192.168.18.17:8080/api/faltas/com-faltas/${feiraId}`;
+      let url = `http://10.1.59.59:8080/api/faltas/com-faltas/${feiraId}`;
       const params = [];
 
       if (statusSelecionado) params.push(`status=${statusSelecionado}`);

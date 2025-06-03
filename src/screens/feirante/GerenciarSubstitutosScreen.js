@@ -35,7 +35,7 @@ export default function GerenciarSubstitutosScreen() {
       }
 
       const response = await axios.get(
-        `http://192.168.18.17:8080/api/substitutos/substituto/${substitutoId}`
+        `http://10.1.59.59:8080/api/substitutos/substituto/${substitutoId}`
       );
       const res = response.data;
 
@@ -77,7 +77,7 @@ export default function GerenciarSubstitutosScreen() {
             try {
               const token = await AsyncStorage.getItem('token');
               const response = await axios.put(
-                `http://192.168.18.17:8080/api/substitutos/${id}/cancelar`,
+                `http://10.1.59.59:8080/api/substitutos/${id}/cancelar`,
                 {},
                 {
                   headers: {

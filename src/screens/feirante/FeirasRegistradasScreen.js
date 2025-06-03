@@ -28,7 +28,7 @@ export default function FeirasRegistradasScreen() {
       if (!usuarioId) return;
 
       const response = await axios.get(
-        `http://192.168.18.17:8080/api/feiras/com-banca/${usuarioId}`
+        `http://10.1.59.59:8080/api/feiras/com-banca/${usuarioId}`
       );
 
       const res = response.data;
@@ -77,7 +77,7 @@ export default function FeirasRegistradasScreen() {
           try {
             const feiranteId = await AsyncStorage.getItem('usuarioId');
             const response = await axios.get(
-              `http://192.168.18.17:8080/api/bancas/feirante/${feiranteId}/feira/${feira.id}`
+              `http://10.1.59.59:8080/api/bancas/feirante/${feiranteId}/feira/${feira.id}`
             );
             const res = response.data;
 

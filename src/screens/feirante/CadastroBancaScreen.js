@@ -35,7 +35,7 @@ export default function CadastrarBancaScreen() {
     setCarregandoFeiras(true);
     setMensagemErro('');
     try {
-      const response = await axios.get('http://192.168.18.17:8080/api/feiras');
+      const response = await axios.get('http://10.1.59.59:8080/api/feiras');
       const res = response.data;
 
       if (res.success && res.data) {
@@ -97,7 +97,7 @@ export default function CadastrarBancaScreen() {
         feiranteId,
       };
 
-      const response = await axios.post('http://192.168.18.17:8080/api/bancas', payload);
+      const response = await axios.post('http://10.1.59.59:8080/api/bancas', payload);
       const res = response.data;
 
       if (res.success) {

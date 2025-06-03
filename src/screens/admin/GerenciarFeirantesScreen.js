@@ -12,18 +12,37 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function GerenciarFeirantesScreen() {
   const navigation = useNavigation();
   const [feirantes, setFeirantes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const statusLabel = {
+    ATIVO: 'Ativo',
+    INATIVO: 'Inativo',
+    SUBSTITUIDO_POR_FALTAS: 'Substituído',
+    AGUARDANDO_REVISÃO: 'Aguardando revisão',
+    BLOQUEADO: 'Bloqueado',
+    NA_FILA_DE_ESPERA: 'Fila de espera',
+  };
+
+  const statusCor = {
+    ATIVO: '#388E3C',
+    INATIVO: '#757575',
+    SUBSTITUIDO_POR_FALTAS: '#D32F2F',
+    AGUARDANDO_REVISÃO: '#F9A825',
+    BLOQUEADO: '#C62828',
+    NA_FILA_DE_ESPERA: '#1976D2',
+  };
+
   useFocusEffect(
     useCallback(() => {
       const carregarFeirantes = async () => {
         try {
           const token = await AsyncStorage.getItem('token');
-          const response = await axios.get('http://192.168.18.17:8080/api/feirantes', {
+          const response = await axios.get('http://10.1.59.59:8080/api/feirantes', {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -40,15 +59,30 @@ export default function GerenciarFeirantesScreen() {
         }
       };
 
-      setLoading(true); 
+      setLoading(true);
       carregarFeirantes();
     }, [])
   );
 
   const renderFeirante = (feirante) => (
     <View key={feirante.id} style={styles.card}>
-      <Text style={styles.nome}>{feirante.nome}</Text>
-      <Text style={styles.email}>{feirante.email}</Text>
+      <View style={styles.headerCard}>
+        <Ionicons name="person-circle-outline" size={30} color="#004AAD" />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.nome}>{feirante.nome}</Text>
+          <Text style={styles.email}>{feirante.email}</Text>
+        </View>
+        <View
+          style={[
+            styles.statusTag,
+            { backgroundColor: statusCor[feirante.status] || '#999' },
+          ]}
+        >
+          <Text style={styles.statusTexto}>
+            {statusLabel[feirante.status] || feirante.status}
+          </Text>
+        </View>
+      </View>
 
       <TouchableOpacity
         style={styles.botaoInterno}
@@ -95,20 +129,37 @@ const styles = StyleSheet.create({
     width: '100%',
     elevation: 2,
   },
+  headerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 10,
+  },
   nome: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#004AAD',
   },
   email: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#555',
-    marginBottom: 10,
+  },
+  statusTag: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  statusTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
   botaoInterno: {
     backgroundColor: '#004AAD',
     paddingVertical: 10,
     borderRadius: 6,
+    marginTop: 8,
   },
   botaoInternoTexto: {
     color: '#fff',

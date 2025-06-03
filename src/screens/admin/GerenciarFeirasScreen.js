@@ -21,7 +21,7 @@ export default function GerenciarFeirasScreen() {
   const carregarFeiras = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://192.168.18.17:8080/api/feiras');
+      const res = await fetch('http://10.1.59.59:8080/api/feiras');
       const json = await res.json();
       if (json.success && json.data) {
         setFeiras(json.data);
