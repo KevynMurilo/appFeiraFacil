@@ -56,16 +56,24 @@ export default function SubstituirFeiranteScreen() {
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem('token');
-              await axios.post(
-                `http://192.168.18.17:8080/api/fila-espera/substituir/${feiraId}?feiranteId=${feiranteId}`,
+              const response = await axios.post(
+                `http://192.168.18.17:8080/api/fila-espera/substituir?idFeira=${feiraId}&idFeiranteInativo=${feiranteId}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );
-              Alert.alert('Sucesso', 'Feirante substituído com sucesso!');
-              navigation.goBack();
+
+              if (response.data.success) {
+                Alert.alert('Sucesso', response.data.message || 'Feirante substituído com sucesso!');
+                navigation.goBack();
+              } else {
+                Alert.alert('Aviso', response.data.message || 'Não foi possível realizar a substituição.');
+              }
             } catch (err) {
-              console.error(err);
-              Alert.alert('Erro', 'Erro ao substituir feirante.');
+              console.error('Erro ao substituir:', err.response?.data || err.message || err);
+              Alert.alert(
+                'Erro',
+                err.response?.data?.message || 'Erro ao substituir feirante. Tente novamente.'
+              );
             }
           },
         },
