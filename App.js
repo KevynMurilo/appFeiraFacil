@@ -5,13 +5,13 @@ import FlashMessage from 'react-native-flash-message';
 
 import { iniciarWebSocketComNotificacoes } from './src/config/websocketNotificacao';
 
-import SplashScreen from './src/screens/SplashScreen';
-import LoginScreen from './src/screens/LoginScreen';
+import SplashScreen from './src/screens/gereric/SplashScreen';
+import LoginScreen from './src/screens/gereric/LoginScreen';
 import CadastroFeiranteScreen from './src/screens/feirante/CadastroFeiranteScreen';
 import VerDetalhesFeiranteScreen from './src/screens/admin/VerDetalhesFeiranteScreen';
 import CadastrarFeiraScreen from './src/screens/admin/CadastrarFeiraScreen';
 import AtualizarFeiraScreen from './src/screens/admin/AtualizarFeiraScreen';
-import VerDetalhesFeiraScreen from './src/screens/admin/VerDetalhesFeiraScreen';
+
 
 import FeiranteDrawer from './src/navigation/FeiranteDrawer';
 import AdminDrawer from './src/navigation/AdminDrawer';
@@ -23,6 +23,11 @@ import VisualizarFilaEsperaScreen from './src/screens/admin/VisualizarFilaEspera
 import FeirantesComTresFaltasScreen from './src/screens/admin/FeirantesComTresFaltasScreen';
 import VerJustificativasFeiranteScreen from './src/screens/admin/VerJustificativasFeiranteScreen';
 import SubstituirFeiranteScreen from './src/screens/admin/SubstituirFeiranteScreen';
+import VerDetalhesFeiraScreen from './src/screens/gereric/VerDetalhesFeiraScreen';
+import CadastrarBancaScreen from './src/screens/feirante/CadastroBancaScreen';
+import JustificarFaltaScreen from './src/screens/feirante/JustificarFaltaScreen';
+import SelecionarFeiraFaltasScreen from './src/screens/admin/SelecionarFeiraFaltasScreen';
+import VerFaltasScreen from './src/screens/feirante/VerFaltasScreen';
 
 const Stack = createStackNavigator();
 
@@ -51,8 +56,11 @@ export default function App() {
           {/* Feirante */}
           <Stack.Screen name="FeiranteDrawer" component={FeiranteDrawer} />
           <Stack.Screen name="Solicitar-Substituto" component={SolicitarSubstitutoScreen} />
+          <Stack.Screen name="CadastrarBanca" component={CadastrarBancaScreen} />
           <Stack.Screen name="VerQrCode" component={VerQrCodeScreen} />
           <Stack.Screen name="VerMinhaBanca" component={VerBancaScreen} />
+          <Stack.Screen name="JustificarFalta" component={JustificarFaltaScreen} />
+          <Stack.Screen name="VerFaltas" component={VerFaltasScreen} />
 
           {/* Admin */}
           <Stack.Screen name="AdminDrawer" component={AdminDrawer} />

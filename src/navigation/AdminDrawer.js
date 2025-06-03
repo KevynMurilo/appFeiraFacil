@@ -1,11 +1,11 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import HomeAdminScreen from '../screens/admin/HomeAdminScreen';
 import GerenciarFeirantesScreen from '../screens/admin/GerenciarFeirantesScreen';
-import GerenciarFeirasScreen from '../screens/admin/GerenciarFeirasScreen';
 import LerQrCodeChamadaScreen from '../screens/admin/LerQrCodeChamadaScreen';
 import DrawerVisual, { drawerScreenOptions } from '../components/DrawerVisual';
 import FilaDeEsperaScreen from '../screens/admin/FilaDeEsperaScreen';
 import SelecionarFeiraFaltasScreen from '../screens/admin/SelecionarFeiraFaltasScreen';
+import GerenciarFeirasScreen from '../screens/gereric/GerenciarFeirasScreen';
 
 const Drawer = createDrawerNavigator();
 

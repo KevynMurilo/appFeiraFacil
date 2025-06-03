@@ -12,6 +12,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 export default function VerDetalhesFeiraScreen() {
@@ -19,6 +20,7 @@ export default function VerDetalhesFeiraScreen() {
   const route = useRoute();
   const { feira: feiraInicial } = route.params;
   const [feira, setFeira] = useState(feiraInicial);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const latitude = parseFloat(feira.latitude);
   const longitude = parseFloat(feira.longitude);
@@ -28,6 +30,9 @@ export default function VerDetalhesFeiraScreen() {
     useCallback(() => {
       const carregarFeiraAtualizada = async () => {
         try {
+          const tipoUsuario = await AsyncStorage.getItem('tipoUsuario');
+          setIsAdmin(tipoUsuario === 'ADMIN');
+
           const resposta = await axios.get(`http://10.1.59.59:8080/api/feiras/${feiraInicial.id}`);
           if (resposta.data.success) {
             setFeira(resposta.data.data);
@@ -108,20 +113,22 @@ export default function VerDetalhesFeiraScreen() {
         <Text style={styles.rodapeMapa}>Formosa - Goiás</Text>
       </ScrollView>
 
-      <View style={styles.botoesFixos}>
-        <TouchableOpacity
-          style={styles.botaoEditar}
-          onPress={() => navigation.navigate('AtualizarFeira', { feira })}
-        >
-          <Ionicons name="create-outline" size={18} color="#fff" />
-          <Text style={styles.botaoTexto}>Atualizar</Text>
-        </TouchableOpacity>
+      {isAdmin && (
+        <View style={styles.botoesFixos}>
+          <TouchableOpacity
+            style={styles.botaoEditar}
+            onPress={() => navigation.navigate('AtualizarFeira', { feira })}
+          >
+            <Ionicons name="create-outline" size={18} color="#fff" />
+            <Text style={styles.botaoTexto}>Atualizar</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.botaoExcluir} onPress={confirmarExclusao}>
-          <Ionicons name="trash-outline" size={18} color="#fff" />
-          <Text style={styles.botaoTexto}>Excluir</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.botaoExcluir} onPress={confirmarExclusao}>
+            <Ionicons name="trash-outline" size={18} color="#fff" />
+            <Text style={styles.botaoTexto}>Excluir</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

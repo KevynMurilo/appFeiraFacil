@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useState } from 'react';
 
 export default function GerenciarFeirasScreen() {
@@ -17,10 +18,14 @@ export default function GerenciarFeirasScreen() {
   const [feiras, setFeiras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [mostrarBotaoNovaFeira, setMostrarBotaoNovaFeira] = useState(false);
 
   const carregarFeiras = async () => {
     try {
       setLoading(true);
+      const tipoUsuario = await AsyncStorage.getItem('tipoUsuario');
+      setMostrarBotaoNovaFeira(tipoUsuario === 'ADMIN');
+
       const res = await fetch('http://10.1.59.59:8080/api/feiras');
       const json = await res.json();
       if (json.success && json.data) {
@@ -80,15 +85,17 @@ export default function GerenciarFeirasScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.acoesContainer}>
-        <TouchableOpacity
-          style={styles.botaoNovaFeira}
-          onPress={() => navigation.navigate('CadastrarFeira')}
-        >
-          <Ionicons name="add-circle-outline" size={22} color="#00AEEF" />
-          <Text style={styles.botaoNovaFeiraTexto}>Nova Feira</Text>
-        </TouchableOpacity>
-      </View>
+      {mostrarBotaoNovaFeira && (
+        <View style={styles.acoesContainer}>
+          <TouchableOpacity
+            style={styles.botaoNovaFeira}
+            onPress={() => navigation.navigate('CadastrarFeira')}
+          >
+            <Ionicons name="add-circle-outline" size={22} color="#00AEEF" />
+            <Text style={styles.botaoNovaFeiraTexto}>Nova Feira</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {loading && !refreshing ? (
         <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#004AAD" />
