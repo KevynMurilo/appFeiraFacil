@@ -7,8 +7,6 @@ import {
   ActivityIndicator,
   SafeAreaView,
   TouchableOpacity,
-  Linking,
-  Alert,
 } from 'react-native';
 import axios from 'axios';
 import TopoNavegacao from '../../components/TopoNavegacao';
@@ -45,28 +43,8 @@ export default function VisualizarFilaEsperaScreen({ route }) {
     buscarFila();
   }, [feira]);
 
-  const abrirWhatsApp = (numero) => {
-    const url = `https://wa.me/55${numero}`;
-    Linking.openURL(url).catch(() =>
-      Alert.alert('Erro', 'Não foi possível abrir o WhatsApp.')
-    );
-  };
-
-  const ativarFeirante = async (idFila) => {
-    try {
-      await axios.patch(
-        `http://10.1.59.59:8080/api/fila-espera/${idFila}/status?status=ATIVO`
-      );
-      Alert.alert('Sucesso', 'Feirante ativado com sucesso!');
-      buscarFila();
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Erro', 'Falha ao ativar feirante.');
-    }
-  };
-
-  const verDetalhes = (feiranteId) => {
-    navigation.navigate('VerDetalhesFeirante', { feiranteId });
+  const verDetalhes = (feiranteId, idFila) => {
+    navigation.navigate('VerDetalhesFeirante', { feiranteId, idFila });
   };
 
   return (
@@ -89,33 +67,16 @@ export default function VisualizarFilaEsperaScreen({ route }) {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Text style={styles.nome}>👤 {item.nomeFeirante}</Text>
-
-              <TouchableOpacity onPress={() => abrirWhatsApp(item.telefoneFeirante)}>
-                <Text style={[styles.info, styles.link]}>
-                  📞 {item.telefoneFeirante}
-                </Text>
-              </TouchableOpacity>
-
+              <Text style={styles.info}>📞 {item.telefoneFeirante}</Text>
               <Text style={styles.info}>📍 Posição: {item.posicao}</Text>
               <Text style={styles.info}>📌 Status: {item.status}</Text>
 
-              <View style={styles.botoesContainer}>
-                {item.status !== 'ATIVO' && (
-                  <TouchableOpacity
-                    style={styles.botaoAtivar}
-                    onPress={() => ativarFeirante(item.id)}
-                  >
-                    <Text style={styles.botaoTexto}>Ativar</Text>
-                  </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                  style={styles.botaoDetalhes}
-                  onPress={() => verDetalhes(item.feiranteId)}
-                >
-                  <Text style={styles.botaoTexto}>Ver Detalhes</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={styles.botaoDetalhes}
+                onPress={() => verDetalhes(item.feiranteId, item.id)}
+              >
+                <Text style={styles.botaoTexto}>Ver Detalhes</Text>
+              </TouchableOpacity>
             </View>
           )}
         />
@@ -140,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     borderLeftWidth: 4,
-    borderLeftColor: '#00AEEF',
+    borderLeftColor: '#004AAD',
   },
   nome: {
     fontSize: 16,
@@ -152,27 +113,11 @@ const styles = StyleSheet.create({
     color: '#555',
     marginTop: 4,
   },
-  link: {
-    color: '#007AFF',
-    textDecorationLine: 'underline',
-  },
-  botoesContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    gap: 10,
-  },
-  botaoAtivar: {
-    flex: 1,
-    backgroundColor: '#004AAD',
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
   botaoDetalhes: {
-    flex: 1,
     backgroundColor: '#00AEEF',
     paddingVertical: 8,
     borderRadius: 6,
+    marginTop: 10,
   },
   botaoTexto: {
     color: '#fff',

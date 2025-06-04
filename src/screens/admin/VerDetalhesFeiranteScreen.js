@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import {
@@ -20,7 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function VerDetalhesFeiranteScreen() {
   const route = useRoute();
-  const { feiranteId, idFila } = route.params;
+  const { feiranteId } = route.params;
 
   const [feirante, setFeirante] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -44,34 +45,6 @@ export default function VerDetalhesFeiranteScreen() {
     } finally {
       setCarregando(false);
     }
-  };
-
-  const ativarFeirante = async () => {
-    Alert.alert(
-      'Confirmar ativação',
-      'Deseja realmente ativar este feirante?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Ativar',
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem('token');
-              await axios.patch(
-                `http://10.1.59.59:8080/api/fila-espera/${idFila}/status?status=ATIVO`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-              Alert.alert('Sucesso', 'Feirante ativado com sucesso!');
-              buscarFeirante();
-            } catch (err) {
-              console.error(err);
-              Alert.alert('Erro', 'Falha ao ativar feirante.');
-            }
-          },
-        },
-      ]
-    );
   };
 
   useEffect(() => {
@@ -119,6 +92,38 @@ export default function VerDetalhesFeiranteScreen() {
     NA_FILA_DE_ESPERA: '#1976D2',
   };
 
+  const InfoItem = ({ label, valor, tipo }) => {
+    const isLink = tipo === 'telefone' || tipo === 'email';
+    const handlePress = () => {
+      if (tipo === 'telefone') Linking.openURL(`tel:${valor}`);
+      if (tipo === 'email') Linking.openURL(`mailto:${valor}`);
+    };
+
+    return (
+      <TouchableOpacity disabled={!isLink} onPress={handlePress} activeOpacity={0.7}>
+        <Text style={styles.label}>{label}</Text>
+        <View style={styles.linkContainer}>
+          <Text
+            style={[
+              styles.valor,
+              isLink && styles.linkTexto,
+            ]}
+          >
+            {valor}
+          </Text>
+          {isLink && (
+            <Ionicons
+              name={tipo === 'telefone' ? 'call-outline' : 'mail-outline'}
+              size={16}
+              color="#004AAD"
+              style={{ marginLeft: 6 }}
+            />
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Feirante" />
@@ -130,17 +135,10 @@ export default function VerDetalhesFeiranteScreen() {
             <Text style={styles.cardTitulo}>Informações Pessoais</Text>
           </View>
 
-          <Text style={styles.label}>Nome</Text>
-          <Text style={styles.valor}>{feirante.nome}</Text>
-
-          <Text style={styles.label}>CPF</Text>
-          <Text style={styles.valor}>{feirante.cpf}</Text>
-
-          <Text style={styles.label}>E-mail</Text>
-          <Text style={styles.valor}>{feirante.email}</Text>
-
-          <Text style={styles.label}>Telefone</Text>
-          <Text style={styles.valor}>{feirante.telefone}</Text>
+          <InfoItem label="Nome" valor={feirante.nome} />
+          <InfoItem label="CPF" valor={feirante.cpf} />
+          <InfoItem label="E-mail" valor={feirante.email} tipo="email" />
+          <InfoItem label="Telefone" valor={feirante.telefone} tipo="telefone" />
 
           <Text style={styles.label}>Status</Text>
           <Text style={[styles.valor, { color: statusCor[feirante.status] || '#333', fontWeight: 'bold' }]}>
@@ -151,12 +149,6 @@ export default function VerDetalhesFeiranteScreen() {
           <Text style={styles.valor}>
             {new Date(feirante.dataCadastro).toLocaleDateString('pt-BR')}
           </Text>
-
-          {feirante.status !== 'ATIVO' && idFila && (
-            <TouchableOpacity style={styles.botaoAtivar} onPress={ativarFeirante}>
-              <Text style={styles.botaoTexto}>Ativar Feirante</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {bancasPorFeira &&
@@ -223,6 +215,16 @@ const styles = StyleSheet.create({
     color: '#333',
     marginTop: 2,
   },
+  linkTexto: {
+    color: '#004AAD',
+    textDecorationLine: 'underline',
+    fontWeight: '500',
+  },
+  linkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   listaProdutos: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -251,17 +253,5 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 18,
     marginTop: 40,
-  },
-  botaoAtivar: {
-    backgroundColor: '#004AAD',
-    marginTop: 20,
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  botaoTexto: {
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
 });

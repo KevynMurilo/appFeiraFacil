@@ -29,6 +29,7 @@ export default function LerQrCodeChamadaScreen() {
         <Ionicons name="camera-outline" size={64} color="#004AAD" style={{ marginBottom: 20 }} />
         <Text style={styles.msgPermissao}>Precisamos da sua permissão para usar a câmera.</Text>
         <TouchableOpacity onPress={requestPermission} style={styles.botaoPermissao}>
+          <Ionicons name="lock-open-outline" size={20} color="#fff" style={{ marginRight: 6 }} />
           <Text style={styles.botaoTexto}>Conceder Permissão</Text>
         </TouchableOpacity>
       </View>
@@ -39,10 +40,9 @@ export default function LerQrCodeChamadaScreen() {
     if (scanned) return;
     setScanned(true);
 
-    // Redireciona para tela de confirmação com o QR Code
+    console.log(data);
     navigation.navigate('ConfirmarCheckin', { qrCode: data });
 
-    // Você pode liberar o scanner após alguns segundos se quiser reativar
     setTimeout(() => setScanned(false), 3000);
   };
 
@@ -71,13 +71,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#f4f7ff',
     paddingHorizontal: 30,
   },
   msgPermissao: {
@@ -87,11 +86,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   botaoPermissao: {
+    flexDirection: 'row',
     marginTop: 20,
     backgroundColor: '#004AAD',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,
+    alignItems: 'center',
     shadowColor: '#004AAD',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -105,17 +106,18 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     width: '100%',
-    height: 400,
+    height: 420,
     borderRadius: 16,
     overflow: 'hidden',
-    marginTop: 20,
+    marginTop: 25,
     borderWidth: 2,
-    borderColor: '#004AAD33',
+    borderColor: '#004AAD22',
     shadowColor: '#000',
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 3,
+    backgroundColor: '#e9efff',
   },
   camera: {
     flex: 1,

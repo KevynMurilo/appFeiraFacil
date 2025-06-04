@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   },
 
   botaoBuscar: {
-    backgroundColor: '#004AAD',
+    backgroundColor: '#00AEEF',
     borderRadius: 6,
     paddingVertical: 10,
     marginTop: 16,

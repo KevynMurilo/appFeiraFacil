@@ -28,6 +28,7 @@ import CadastrarBancaScreen from './src/screens/feirante/CadastroBancaScreen';
 import JustificarFaltaScreen from './src/screens/feirante/JustificarFaltaScreen';
 import SelecionarFeiraFaltasScreen from './src/screens/admin/SelecionarFeiraFaltasScreen';
 import VerFaltasScreen from './src/screens/feirante/VerFaltasScreen';
+import EditarPerfilScreen from './src/screens/feirante/EditarPerfilScreen';
 
 const Stack = createStackNavigator();
 
@@ -61,6 +62,7 @@ export default function App() {
           <Stack.Screen name="VerMinhaBanca" component={VerBancaScreen} />
           <Stack.Screen name="JustificarFalta" component={JustificarFaltaScreen} />
           <Stack.Screen name="VerFaltas" component={VerFaltasScreen} />
+          <Stack.Screen name="Perfil" component={EditarPerfilScreen} />
 
           {/* Admin */}
           <Stack.Screen name="AdminDrawer" component={AdminDrawer} />

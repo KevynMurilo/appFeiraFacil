@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   botaoCompartilhar: {
-    backgroundColor: '#004AAD',
+    backgroundColor: '#00AEEF',
     paddingVertical: 14,
     paddingHorizontal: 40,
     borderRadius: 10,

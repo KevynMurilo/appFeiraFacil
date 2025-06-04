@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     color: '#004AAD',
   },
   botao: {
-    backgroundColor: '#004AAD',
+    backgroundColor: '#00AEEF',
     paddingVertical: 10,
     borderRadius: 6,
     marginTop: 10,

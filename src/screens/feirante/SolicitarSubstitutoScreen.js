@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   botao: {
-    backgroundColor: '#004AAD',
+    backgroundColor: '#00AEEF',
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  Linking,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
@@ -111,24 +112,37 @@ export default function VerDetalhesFeiraScreen() {
           />
         </MapView>
         <Text style={styles.rodapeMapa}>Formosa - Goiás</Text>
-      </ScrollView>
 
-      {isAdmin && (
-        <View style={styles.botoesFixos}>
+        {/* Botões movidos para dentro do ScrollView */}
+        <View style={styles.botoesInferiores}>
           <TouchableOpacity
-            style={styles.botaoEditar}
-            onPress={() => navigation.navigate('AtualizarFeira', { feira })}
+            style={styles.botaoMapa}
+            onPress={() =>
+              Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`)
+            }
           >
-            <Ionicons name="create-outline" size={18} color="#fff" />
-            <Text style={styles.botaoTexto}>Atualizar</Text>
+            <Ionicons name="map-outline" size={18} color="#fff" />
+            <Text style={styles.botaoTexto}>Abrir no Mapa</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.botaoExcluir} onPress={confirmarExclusao}>
-            <Ionicons name="trash-outline" size={18} color="#fff" />
-            <Text style={styles.botaoTexto}>Excluir</Text>
-          </TouchableOpacity>
+          {isAdmin && (
+            <View style={styles.botoesAdmin}>
+              <TouchableOpacity
+                style={styles.botaoEditar}
+                onPress={() => navigation.navigate('AtualizarFeira', { feira })}
+              >
+                <Ionicons name="create-outline" size={18} color="#fff" />
+                <Text style={styles.botaoTexto}>Atualizar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.botaoExcluir} onPress={confirmarExclusao}>
+                <Ionicons name="trash-outline" size={18} color="#fff" />
+                <Text style={styles.botaoTexto}>Excluir</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
-      )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -144,7 +158,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   container: {
     padding: 20,
-    paddingBottom: 120,
+    paddingBottom: 40,
     backgroundColor: '#fff',
     flexGrow: 1,
   },
@@ -179,18 +193,28 @@ const styles = StyleSheet.create({
   rodapeMapa: {
     textAlign: 'center',
     color: '#004AAD',
-    marginBottom: 30,
+    marginBottom: 10,
     fontSize: 14,
     fontWeight: '500',
   },
-  botoesFixos: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  botoesInferiores: {
+    marginTop: 20,
+    marginBottom: 40,
     gap: 10,
+  },
+  botaoMapa: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#004AAD',
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 6,
+  },
+  botoesAdmin: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
   },
   botaoEditar: {
     flex: 1,

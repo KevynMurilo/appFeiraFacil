@@ -6,14 +6,15 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
+  Alert,
+  Linking,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopoNavegacao from '../../components/TopoNavegacao';
-import { useRoute, useNavigation } from '@react-navigation/native';
 
 export default function ConfirmarCheckinScreen() {
   const route = useRoute();
@@ -27,7 +28,7 @@ export default function ConfirmarCheckinScreen() {
     const carregarDados = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get(`http://10.1.59.59:8080/api/bancas/por-qr/${qrCode}`, {
+        const res = await axios.get(`http://10.1.59.59:8080/api/bancas/qr/${qrCode}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -55,46 +56,41 @@ export default function ConfirmarCheckinScreen() {
     if (!dados?.banca || !dados?.feirante) return;
 
     try {
-        const token = await AsyncStorage.getItem('token');
-
-        const response = await axios.post(
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.post(
         `http://10.1.59.59:8080/api/checkins`,
         null,
         {
-            params: {
+          params: {
             idBanca: dados.banca.id,
             idFeirante: dados.feirante.id,
-            },
-            headers: {
+          },
+          headers: {
             Authorization: `Bearer ${token}`,
-            },
+          },
         }
-        );
+      );
 
-        const resultado = response.data;
+      const resultado = response.data;
 
-        if (resultado.success) {
+      if (resultado.success) {
         Alert.alert('✅ Sucesso', resultado.message || 'Check-in confirmado com sucesso');
         navigation.goBack();
-        } else {
+      } else {
         Alert.alert('❌ Erro', resultado.message || 'Não foi possível registrar o check-in.');
-        }
-
+      }
     } catch (error) {
-        // 🌐 Log de erro HTTP (ex: timeout, rede, status inválido)
-        console.error('❗ Erro no check-in:', error);
-
-        const mensagemErro = error.response?.data?.message || 'Erro inesperado ao registrar o check-in.';
-        Alert.alert('Erro', mensagemErro);
+      console.error('❗ Erro no check-in:', error);
+      const mensagemErro = error.response?.data?.message || 'Erro inesperado ao registrar o check-in.';
+      Alert.alert('Erro', mensagemErro);
     }
-    };
-
+  };
 
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
         <TopoNavegacao titulo="Confirmar Check-in" />
-        <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 50 }} />
+        <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 40 }} />
       </SafeAreaView>
     );
   }
@@ -105,16 +101,36 @@ export default function ConfirmarCheckinScreen() {
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Confirmar Check-in" />
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.titulo}>📋 Dados do Feirante</Text>
-        <Info label="Nome" valor={feirante.nome} />
-        <Info label="CPF" valor={feirante.cpf} />
-        <Info label="Telefone" valor={feirante.telefone} />
-        <Info label="E-mail" valor={feirante.email} />
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="person-circle-outline" size={24} color="#004AAD" />
+            <Text style={styles.cardTitulo}>Feirante</Text>
+          </View>
 
-        <Text style={styles.titulo}>🛒 Dados da Banca</Text>
-        <Info label="Feira" valor={banca.nomeFeira} />
-        <Info label="Tipo de Produto" valor={banca.tipoProduto} />
-        <Info label="Produtos" valor={banca.produtos.join(', ')} />
+          <Item label="Nome" valor={feirante.nome} />
+          <Item label="CPF" valor={feirante.cpf} />
+          <Item label="Telefone" valor={feirante.telefone} isLink tipo="telefone" />
+          <Item label="E-mail" valor={feirante.email} isLink tipo="email" />
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons name="storefront-outline" size={22} color="#004AAD" />
+            <Text style={styles.cardTitulo}>Banca</Text>
+          </View>
+
+          <Item label="Feira" valor={banca.nomeFeira} />
+          <Item label="Tipo de Produto" valor={banca.tipoProduto} />
+
+          <Text style={styles.label}>Produtos</Text>
+          <View style={styles.listaProdutos}>
+            {banca.produtos.map((prod, index) => (
+              <View key={index} style={styles.produtoBadge}>
+                <Text style={styles.produtoTexto}>{prod}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
 
         <TouchableOpacity style={styles.botaoConfirmar} onPress={handleConfirmar}>
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
@@ -125,53 +141,113 @@ export default function ConfirmarCheckinScreen() {
   );
 }
 
-const Info = ({ label, valor }) => (
-  <View style={{ marginBottom: 10 }}>
-    <Text style={styles.label}>{label}:</Text>
-    <Text style={styles.valor}>{valor}</Text>
-  </View>
-);
+const Item = ({ label, valor, isLink, tipo }) => {
+  const handlePress = () => {
+    if (!isLink) return;
+    if (tipo === 'telefone') Linking.openURL(`tel:${valor}`);
+    if (tipo === 'email') Linking.openURL(`mailto:${valor}`);
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress} disabled={!isLink} activeOpacity={0.7}>
+      <View style={{ marginBottom: 10 }}>
+        <Text style={styles.label}>{label}</Text>
+        <View style={styles.linkContainer}>
+          <Text
+            style={[
+              styles.valor,
+              isLink && styles.linkTexto,
+            ]}
+          >
+            {valor}
+          </Text>
+          {isLink && (
+            <Ionicons
+              name={tipo === 'telefone' ? 'call-outline' : 'mail-outline'}
+              size={16}
+              color="#004AAD"
+              style={{ marginLeft: 6 }}
+            />
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
+  safe: { flex: 1, backgroundColor: '#fff' },
+  container: { paddingBottom: 30, flexGrow: 1 },
+  card: {
+    backgroundColor: '#F2F6FF',
+    marginHorizontal: 20,
+    borderRadius: 12,
     padding: 20,
-    paddingBottom: 40,
-    flexGrow: 1,
-    backgroundColor: '#fff',
+    marginTop: 20,
+    elevation: 3,
   },
-  titulo: {
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 10,
+  },
+  cardTitulo: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 10,
     color: '#004AAD',
   },
   label: {
-    fontWeight: 'bold',
+    marginTop: 10,
+    fontWeight: '600',
     color: '#004AAD',
-    fontSize: 15,
   },
   valor: {
     fontSize: 16,
     color: '#333',
+    marginTop: 2,
+  },
+  linkTexto: {
+    color: '#004AAD',
+    textDecorationLine: 'underline',
+    fontWeight: '500',
+  },
+  linkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  listaProdutos: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+    gap: 8,
+  },
+  produtoBadge: {
+    backgroundColor: '#00AEEF',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  produtoTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   botaoConfirmar: {
+    marginHorizontal: 20,
     marginTop: 30,
-    flexDirection: 'row',
     backgroundColor: '#00AEEF',
-    paddingVertical: 12,
+    paddingVertical: 14,
+    borderRadius: 8,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
     gap: 10,
   },
   botaoTexto: {
     color: '#fff',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });
