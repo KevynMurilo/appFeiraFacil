@@ -28,11 +28,7 @@ export default function GerenciarBancasScreen() {
       const usuarioId = await AsyncStorage.getItem('usuarioId');
       if (!usuarioId) return;
 
-      const response = await axios.get(
-        `${API_URL}/feiras/com-banca/${usuarioId}`
-      );
-
-
+      const response = await axios.get(`${API_URL}/feiras/com-banca/${usuarioId}`);
       const res = response.data;
       if (res.success && res.data) {
         setFeiras(res.data);
@@ -89,9 +85,8 @@ export default function GerenciarBancasScreen() {
 
   const renderFeira = (item) => {
     const { feira, feirante } = item;
-    const banca = feirante.bancas?.find((b) => b.nomeFeira === feira.nome);
-
-    const aviso = avisosStatus[feirante.status];
+    const banca = feirante?.bancas?.find((b) => b.nomeFeira === feira.nome);
+    const aviso = feirante?.status ? avisosStatus[feirante.status] : null;
 
     return (
       <View key={feira.id} style={styles.card}>
@@ -103,14 +98,9 @@ export default function GerenciarBancasScreen() {
         )}
 
         <Text style={styles.nomeFeira}>{feira.nome}</Text>
-        <Text style={styles.local}>{feira.local}</Text>
-
-        <Text style={styles.info}>🗓️ {feira.diasSemana}</Text>
-        <Text style={styles.info}>🕒 {feira.horario}</Text>
-
-        <Text style={styles.info}>
-          👥 {feira.quantidadeFeirantes} / {feira.maxFeirantes} feirantes
-        </Text>
+        <Text style={styles.local}>🗺️ {feira.local}</Text>
+        <Text style={styles.info}>🗓️ {feira.horarios.map(horario => `${horario.dia}: ${horario.horarioInicio} - ${horario.horarioFim}`).join('\n')}h</Text>
+        <Text style={styles.info}>👥 {feira.quantidadeFeirantes} / {feira.maxFeirantes} feirantes</Text>
 
         {feira.statusFila !== 'ATIVO' && feira.posicaoFila && (
           <Text style={styles.fila}>📋 Posição na fila: {feira.posicaoFila}</Text>
@@ -123,21 +113,15 @@ export default function GerenciarBancasScreen() {
             {banca.produtos?.length > 0 && (
               <Text style={styles.info}>Produtos: {banca.produtos.join(', ')}</Text>
             )}
+
+            <TouchableOpacity
+              style={styles.botaoInterno}
+              onPress={() => navigation.navigate('VerMinhaBanca', { bancaId: banca.id })}
+            >
+              <Text style={styles.botaoInternoTexto}>Ver Detalhes</Text>
+            </TouchableOpacity>
           </>
         )}
-
-        <TouchableOpacity
-          style={styles.botaoInterno}
-          onPress={() =>
-            navigation.navigate('VerMinhaBanca', {
-              feira,
-              feirante,
-              banca,
-            })
-          }
-        >
-          <Text style={styles.botaoInternoTexto}>Ver Detalhes</Text>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -236,11 +220,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#444',
     marginBottom: 3,
-  },
-  status: {
-    fontSize: 15,
-    marginTop: 6,
-    marginBottom: 4,
   },
   fila: {
     fontSize: 14,

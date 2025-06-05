@@ -67,10 +67,7 @@ export default function GerenciarFeirasScreen() {
           <Text style={styles.label}>Local:</Text> {feira.local}
         </Text>
         <Text style={styles.info}>
-          <Text style={styles.label}>Dias:</Text> {feira.diasSemana}
-        </Text>
-        <Text style={styles.info}>
-          <Text style={styles.label}>Horário:</Text> {feira.horario}h
+          <Text style={styles.label}>Horário:</Text> {feira.horarios.map(horario => `${horario.dia}: ${horario.horarioInicio} - ${horario.horarioFim}`).join('\n')}h
         </Text>
         <Text style={styles.info}>
           <Text style={styles.label}>Vagas:</Text> {vagasOcupadas}/{feira.maxFeirantes} ocupadas

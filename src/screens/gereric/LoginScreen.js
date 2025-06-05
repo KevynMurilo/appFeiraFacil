@@ -52,6 +52,7 @@ export default function LoginScreen({ navigation }) {
       await AsyncStorage.setItem('tipoUsuario', tipoUsuario);
       await AsyncStorage.setItem('usuarioId', usuario.id);
       await AsyncStorage.setItem('usuarioNome', usuario.nome);
+      await AsyncStorage.setItem('usuarioEmail', res.data.email);
       await AsyncStorage.setItem('dataHoraLogin', new Date().toISOString());
       
       exibirMensagem('Login realizado com sucesso!', 'success');

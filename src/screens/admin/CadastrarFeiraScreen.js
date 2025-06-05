@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  Platform,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,34 +19,38 @@ import TopoNavegacao from '../../components/TopoNavegacao';
 import axios from 'axios';
 import { API_URL } from '../../config/api';
 
+const diasSemana = ["SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO", "DOMINGO"];
+
+const gerarHorarios = () => {
+  const horas = [];
+  for (let h = 6; h <= 22; h++) {
+    horas.push(`${String(h).padStart(2, '0')}:00`);
+    horas.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return horas;
+};
+
 export default function CadastrarFeiraScreen() {
   const navigation = useNavigation();
+  const [feira, setFeira] = useState({ nome: '', local: '', maxFeirantes: '', latitude: null, longitude: null });
+  const [horarios, setHorarios] = useState([{ dia: '', horarioInicio: '', horarioFim: '' }]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [pickerType, setPickerType] = useState({ index: 0, field: '', options: [] });
 
-  const [feira, setFeira] = useState({
-    nome: '',
-    local: '',
-    maxFeirantes: '',
-    latitude: null,
-    longitude: null,
-  });
-
-  const [horarios, setHorarios] = useState([
-    { dia: '', horarioInicio: '', horarioFim: '' },
-  ]);
-
-  const handleChange = (field, value) => {
-    setFeira({ ...feira, [field]: value });
-  };
+  const handleChange = (field, value) => setFeira({ ...feira, [field]: value });
 
   const handleHorarioChange = (index, field, value) => {
     const novosHorarios = [...horarios];
-    novosHorarios[index][field] = value.toUpperCase();
+    novosHorarios[index][field] = value;
     setHorarios(novosHorarios);
   };
 
-  const adicionarHorario = () => {
-    setHorarios([...horarios, { dia: '', horarioInicio: '', horarioFim: '' }]);
+  const openPicker = (index, field, options) => {
+    setPickerType({ index, field, options });
+    setModalVisible(true);
   };
+
+  const adicionarHorario = () => setHorarios([...horarios, { dia: '', horarioInicio: '', horarioFim: '' }]);
 
   const handleMapPress = (e) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
@@ -52,17 +59,14 @@ export default function CadastrarFeiraScreen() {
 
   const handleSalvar = async () => {
     const { nome, local, maxFeirantes, latitude, longitude } = feira;
-
     if (!nome || !local || !maxFeirantes || latitude === null || longitude === null) {
       Alert.alert('Campos obrigatórios', 'Preencha todos os campos da feira.');
       return;
     }
-
     if (horarios.some(h => !h.dia || !h.horarioInicio || !h.horarioFim)) {
       Alert.alert('Campos obrigatórios', 'Preencha todos os campos de horário.');
       return;
     }
-
     try {
       const response = await axios.post(`${API_URL}/feiras`, {
         nome,
@@ -72,7 +76,6 @@ export default function CadastrarFeiraScreen() {
         longitude: longitude.toString(),
         horarios
       });
-
       if (response.data.success) {
         Alert.alert('Sucesso', 'Feira cadastrada com sucesso!');
         navigation.goBack();
@@ -89,10 +92,7 @@ export default function CadastrarFeiraScreen() {
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Cadastrar Feira" />
       <ScrollView contentContainerStyle={styles.container}>
-        {[{ label: 'Nome da Feira', key: 'nome' },
-          { label: 'Local', key: 'local' },
-          { label: 'Máx. Feirantes', key: 'maxFeirantes', keyboard: 'numeric' },
-        ].map(({ label, key, keyboard }) => (
+        {[{ label: 'Nome da Feira', key: 'nome' }, { label: 'Local', key: 'local' }, { label: 'Máx. Feirantes', key: 'maxFeirantes', keyboard: 'numeric' }].map(({ label, key, keyboard }) => (
           <View key={key} style={styles.inputGroup}>
             <Text style={styles.label}>{label}:</Text>
             <TextInput
@@ -109,26 +109,29 @@ export default function CadastrarFeiraScreen() {
         <Text style={styles.label}>Horários da Feira</Text>
         {horarios.map((item, index) => (
           <View key={index} style={styles.horarioCard}>
-            <TextInput
-              style={styles.input}
-              placeholder="Dia (ex: SABADO)"
-              value={item.dia}
-              onChangeText={(value) => handleHorarioChange(index, 'dia', value)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Início (ex: 07:00)"
-              value={item.horarioInicio}
-              onChangeText={(value) => handleHorarioChange(index, 'horarioInicio', value)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Fim (ex: 12:00)"
-              value={item.horarioFim}
-              onChangeText={(value) => handleHorarioChange(index, 'horarioFim', value)}
-            />
+            <TouchableOpacity
+              style={styles.select}
+              onPress={() => openPicker(index, 'dia', diasSemana)}
+            >
+              <Text style={styles.selectText}>{item.dia || 'Selecione o dia'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.select}
+              onPress={() => openPicker(index, 'horarioInicio', gerarHorarios())}
+            >
+              <Text style={styles.selectText}>{item.horarioInicio || 'Horário de Início'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.select}
+              onPress={() => openPicker(index, 'horarioFim', gerarHorarios())}
+            >
+              <Text style={styles.selectText}>{item.horarioFim || 'Horário de Fim'}</Text>
+            </TouchableOpacity>
           </View>
         ))}
+
         <TouchableOpacity onPress={adicionarHorario} style={styles.botaoAdicionar}>
           <Ionicons name="add" size={20} color="#004AAD" />
           <Text style={styles.addText}>Adicionar Horário</Text>
@@ -137,19 +140,13 @@ export default function CadastrarFeiraScreen() {
         <Text style={styles.label}>Localização (clique no mapa)</Text>
         <MapView
           style={styles.map}
-          initialRegion={{
-            latitude: -15.5392,
-            longitude: -47.337,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
+          initialRegion={{ latitude: -15.5392, longitude: -47.337, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
           onPress={handleMapPress}
         >
           {feira.latitude && feira.longitude && (
             <Marker coordinate={{ latitude: feira.latitude, longitude: feira.longitude }} />
           )}
         </MapView>
-
         <Text style={styles.coord}>
           {feira.latitude && feira.longitude
             ? `Lat: ${feira.latitude.toFixed(5)} | Long: ${feira.longitude.toFixed(5)}`
@@ -160,16 +157,53 @@ export default function CadastrarFeiraScreen() {
           <Ionicons name="save" size={20} color="#fff" />
           <Text style={styles.botaoTexto}>Salvar Feira</Text>
         </TouchableOpacity>
+
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <FlatList
+                data={pickerType.options}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      handleHorarioChange(pickerType.index, pickerType.field, item);
+                      setModalVisible(false);
+                    }}
+                    style={styles.modalItem}
+                  >
+                    <Text style={styles.modalItemText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalCancelar}>
+                <Text style={styles.modalCancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
-  container: { padding: 20, paddingBottom: 40 },
-  inputGroup: { marginBottom: 15 },
-  label: { fontWeight: '600', color: '#004AAD', marginBottom: 4 },
+  safe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  container: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    fontWeight: '600',
+    color: '#004AAD',
+    marginBottom: 4,
+  },
   input: {
     backgroundColor: '#F2F6FF',
     borderRadius: 8,
@@ -180,7 +214,21 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 10,
   },
-  horarioCard: { marginBottom: 15 },
+  select: {
+    backgroundColor: '#F2F6FF',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+  },
+  selectText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  horarioCard: {
+    marginBottom: 20,
+  },
   map: {
     width: '100%',
     height: 250,
@@ -219,5 +267,35 @@ const styles = StyleSheet.create({
     color: '#004AAD',
     fontSize: 15,
     fontWeight: '500',
+    marginLeft: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '50%',
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  modalCancelar: {
+    marginTop: 10,
+  },
+  modalCancelarText: {
+    color: '#FF4D4F',
+    textAlign: 'center',
+    fontSize: 16,
   },
 });

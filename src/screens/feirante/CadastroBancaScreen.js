@@ -27,7 +27,10 @@ export default function CadastrarBancaScreen() {
   const [produtos, setProdutos] = useState([]);
   const [feiraSelecionada, setFeiraSelecionada] = useState('');
   const [feirasDisponiveis, setFeirasDisponiveis] = useState([]);
+  const [horariosDisponiveis, setHorariosDisponiveis] = useState([]);
+  const [horariosSelecionados, setHorariosSelecionados] = useState([]);
   const [carregandoFeiras, setCarregandoFeiras] = useState(true);
+  const [carregandoHorarios, setCarregandoHorarios] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const [mensagemErro, setMensagemErro] = useState('');
@@ -54,9 +57,34 @@ export default function CadastrarBancaScreen() {
     }
   };
 
+  const carregarHorarios = async (feiraId) => {
+    setCarregandoHorarios(true);
+    try {
+      const response = await axios.get(`${API_URL}/horarios/feira/${feiraId}`);
+      const res = response.data;
+      if (res.success && res.data) {
+        setHorariosDisponiveis(res.data);
+        setHorariosSelecionados([]); 
+      } else {
+        setHorariosDisponiveis([]);
+        setHorariosSelecionados([]);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar horários:', error);
+    } finally {
+      setCarregandoHorarios(false);
+    }
+  };
+
   useEffect(() => {
     carregarFeiras();
   }, []);
+
+  useEffect(() => {
+    if (feiraSelecionada) {
+      carregarHorarios(feiraSelecionada);
+    }
+  }, [feiraSelecionada]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -76,12 +104,20 @@ export default function CadastrarBancaScreen() {
     setProdutos(novaLista);
   };
 
+  const toggleHorarioSelecionado = (horarioId) => {
+    if (horariosSelecionados.includes(horarioId)) {
+      setHorariosSelecionados(horariosSelecionados.filter(h => h !== horarioId));
+    } else {
+      setHorariosSelecionados([...horariosSelecionados, horarioId]);
+    }
+  };
+
   const handleCadastrar = async () => {
     setMensagemErro('');
     setMensagemSucesso('');
 
-    if (!tipoProduto || produtos.length === 0 || !feiraSelecionada) {
-      setMensagemErro('Preencha todos os campos e adicione pelo menos um produto.');
+    if (!tipoProduto || produtos.length === 0 || !feiraSelecionada || horariosSelecionados.length === 0) {
+      setMensagemErro('Preencha todos os campos e selecione pelo menos um horário.');
       return;
     }
 
@@ -97,6 +133,7 @@ export default function CadastrarBancaScreen() {
         produtos,
         feiraId: feiraSelecionada,
         feiranteId,
+        horarioIds: horariosSelecionados,
       };
 
       const response = await axios.post(`${API_URL}/bancas`, payload);
@@ -108,6 +145,7 @@ export default function CadastrarBancaScreen() {
         setProdutoAtual('');
         setProdutos([]);
         setFeiraSelecionada('');
+        setHorariosSelecionados([]);
         setTimeout(() => navigation.goBack(), 1500);
       } else {
         setMensagemErro(res.message || 'Erro ao cadastrar banca.');
@@ -120,12 +158,10 @@ export default function CadastrarBancaScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo="Cadastrar Banca"/>
+      <TopoNavegacao titulo="Cadastrar Banca" />
       <ScrollView
         contentContainerStyle={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />}
       >
         {mensagemErro !== '' && <Text style={styles.alertaErro}>❌ {mensagemErro}</Text>}
         {mensagemSucesso !== '' && <Text style={styles.alertaSucesso}>✅ {mensagemSucesso}</Text>}
@@ -146,6 +182,28 @@ export default function CadastrarBancaScreen() {
                 <Picker.Item key={feira.id} label={feira.nome} value={feira.id} />
               ))}
             </Picker>
+          </View>
+        )}
+
+        {horariosDisponiveis.length > 0 && (
+          <View>
+            <Text style={styles.label}>🕒 Selecione os horários</Text>
+            {horariosDisponiveis.map((h) => (
+              <TouchableOpacity
+                key={h.id}
+                onPress={() => toggleHorarioSelecionado(h.id)}
+                style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}
+              >
+                <Ionicons
+                  name={horariosSelecionados.includes(h.id) ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color="#004AAD"
+                />
+                <Text style={{ marginLeft: 8 }}>
+                  {h.dia}: {h.horarioInicio} às {h.horarioFim}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 

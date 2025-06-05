@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import TopoNavegacao from '../../components/TopoNavegacao';
@@ -17,30 +18,54 @@ import { API_URL } from '../../config/api';
 export default function VerBancaScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { banca, feira, feirante } = route.params;
+  const { bancaId } = route.params;
 
+  const [banca, setBanca] = useState(null);
+  const [feirante, setFeirante] = useState(null);
+  const [feira, setFeira] = useState(null);
   const [posicaoFila, setPosicaoFila] = useState(null);
   const [totalFila, setTotalFila] = useState(null);
   const [nomeFeiraFila, setNomeFeiraFila] = useState('');
+  const [carregando, setCarregando] = useState(true);
+
   const statusFeirante = feirante?.status;
 
   useEffect(() => {
-    if (statusFeirante === 'NA_FILA_DE_ESPERA') {
-      buscarPosicaoNaFila();
-    }
+    buscarBanca();
   }, []);
 
-  const buscarPosicaoNaFila = async () => {
+  useEffect(() => {
+    if (statusFeirante === 'NA_FILA_DE_ESPERA' && feira && feirante) {
+      buscarPosicaoNaFila(feira.id, feirante.id);
+    }
+  }, [feira, feirante]);
+
+  const buscarBanca = async () => {
+    setCarregando(true);
     try {
-      const res = await axios.get(
-        `${API_URL}/fila-espera/minha-posicao`,
-        {
-          params: {
-            idFeira: feira.id,
-            idFeirante: feirante.id,
-          },
-        }
-      );
+      const response = await axios.get(`${API_URL}/bancas/${bancaId}`);
+      const res = response.data;
+
+      if (res.success && res.data) {
+        setBanca(res.data.banca);
+        setFeirante(res.data.feirante);
+        setFeira(res.data.feira);
+      } else {
+        Alert.alert('Erro', res.message || 'Erro ao buscar banca.');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar banca:', error);
+      Alert.alert('Erro', 'Falha ao buscar dados da banca.');
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const buscarPosicaoNaFila = async (feiraId, feiranteId) => {
+    try {
+      const res = await axios.get(`${API_URL}/fila-espera/minha-posicao`, {
+        params: { idFeira: feiraId, idFeirante: feiranteId },
+      });
 
       if (res.data?.success && res.data.data?.posicao != null) {
         setPosicaoFila(res.data.data.posicao);
@@ -69,7 +94,7 @@ export default function VerBancaScreen() {
 
   const deletarBanca = async () => {
     try {
-      const response = await axios.delete(`${API_URL}/bancas/${banca.id}`);
+      const response = await axios.delete(`${API_URL}/bancas/${bancaId}`);
       const res = response.data;
 
       if (res.success) {
@@ -84,10 +109,20 @@ export default function VerBancaScreen() {
     }
   };
 
+  if (carregando || !banca || !feirante || !feira) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <TopoNavegacao titulo="Detalhes da Banca" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#004AAD" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Detalhes da Banca" />
-
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.card}>
           <Text style={styles.secaoTitulo}>🧺 Tipo de Produto</Text>
@@ -106,9 +141,20 @@ export default function VerBancaScreen() {
             )}
           </View>
 
+          <Text style={styles.secaoTitulo}>🕒 Horários da Banca</Text>
+          <View style={styles.secaoConteudo}>
+            {banca.horarios?.length > 0 ? (
+              banca.horarios.map((h, idx) => (
+                <Text key={idx} style={styles.valorLista}>• {h}</Text>
+              ))
+            ) : (
+              <Text style={styles.valor}>Nenhum horário vinculado</Text>
+            )}
+          </View>
+
           <Text style={styles.secaoTitulo}>📍 Feira Vinculada</Text>
           <View style={styles.secaoConteudo}>
-            <Text style={styles.valor}>{feira?.nome || 'Não informada'}</Text>
+            <Text style={styles.valor}>{feira.nome}</Text>
           </View>
 
           <Text style={styles.secaoTitulo}>📋 Status do Feirante</Text>

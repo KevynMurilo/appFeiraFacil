@@ -36,6 +36,7 @@ export default function VerDetalhesFeiraScreen() {
           setIsAdmin(tipoUsuario === 'ADMIN');
 
           const resposta = await axios.get(`${API_URL}/feiras/${feiraInicial.id}`);
+
           if (resposta.data.success) {
             setFeira(resposta.data.data);
           } else {
@@ -86,8 +87,10 @@ export default function VerDetalhesFeiraScreen() {
         <View style={styles.card}>
           <Info label="Nome" valor={feira.nome} />
           <Info label="Local" valor={feira.local} />
-          <Info label="Dias da Semana" valor={feira.diasSemana} />
-          <Info label="Horários" valor={feira.horario} />
+          <Info
+            label="Horários"
+            valor={feira.horarios.map(horario => `${horario.dia}: ${horario.horarioInicio} - ${horario.horarioFim}`).join('\n')}
+          />
           <Info
             label="Feirantes Atuais / Limite"
             valor={`${feira.quantidadeFeirantes} / ${feira.maxFeirantes}`}
