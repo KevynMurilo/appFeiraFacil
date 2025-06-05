@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { API_URL } from '../../config/api';
 
 export default function VerJustificativasFeiranteScreen() {
   const route = useRoute();
@@ -25,7 +26,7 @@ export default function VerJustificativasFeiranteScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
-        `http://10.1.59.59:8080/api/justificativas/feirante/${feiranteId}`,
+        `${API_URL}/justificativas/feirante/${feiranteId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -48,7 +49,7 @@ export default function VerJustificativasFeiranteScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.put(
-        `http://10.1.59.59:8080/api/justificativas/${id}/status?aceita=${aceita}`,
+        `${API_URL}/justificativas/${id}/status?aceita=${aceita}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -57,7 +58,7 @@ export default function VerJustificativasFeiranteScreen() {
 
       if (res.data.success) {
         Alert.alert('Sucesso', res.data.message);
-        carregarJustificativas(); // recarrega a lista após atualização
+        carregarJustificativas();
       } else {
         Alert.alert('Erro', res.data.message || 'Erro ao atualizar status.');
       }

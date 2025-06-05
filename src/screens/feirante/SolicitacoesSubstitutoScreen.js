@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../../config/api';
 
 export default function SolicitacoesSubstitutoScreen() {
   const [solicitacoes, setSolicitacoes] = useState([]);
@@ -34,10 +35,8 @@ export default function SolicitacoesSubstitutoScreen() {
       }
 
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/solicitacar-substitutos/recebidas/${usuarioId}?status=PENDENTE`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `${API_URL}/solicitacar-substitutos/recebidas/${usuarioId}?status=PENDENTE`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const res = response.data;
@@ -69,7 +68,7 @@ export default function SolicitacoesSubstitutoScreen() {
         return;
       }
 
-      const url = `http://10.1.59.59:8080/api/solicitacar-substitutos/${id}/${acao}`;
+      const url = `${API_URL}/solicitacar-substitutos/${id}/${acao}`;
       const response = await axios.patch(url, null, {
         headers: { Authorization: `Bearer ${token}` },
       });

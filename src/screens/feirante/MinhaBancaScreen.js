@@ -12,6 +12,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function VerBancaScreen() {
   const navigation = useNavigation();
@@ -32,7 +33,7 @@ export default function VerBancaScreen() {
   const buscarPosicaoNaFila = async () => {
     try {
       const res = await axios.get(
-        `http://10.1.59.59:8080/api/fila-espera/minha-posicao`,
+        `${API_URL}/fila-espera/minha-posicao`,
         {
           params: {
             idFeira: feira.id,
@@ -40,8 +41,6 @@ export default function VerBancaScreen() {
           },
         }
       );
-
-      console.log(res.data);
 
       if (res.data?.success && res.data.data?.posicao != null) {
         setPosicaoFila(res.data.data.posicao);
@@ -70,7 +69,7 @@ export default function VerBancaScreen() {
 
   const deletarBanca = async () => {
     try {
-      const response = await axios.delete(`http://10.1.59.59:8080/api/bancas/${banca.id}`);
+      const response = await axios.delete(`${API_URL}/bancas/${banca.id}`);
       const res = response.data;
 
       if (res.success) {

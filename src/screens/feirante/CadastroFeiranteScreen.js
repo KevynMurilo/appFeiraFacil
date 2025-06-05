@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function CadastroFeiranteScreen({ navigation }) {
   const [form, setForm] = useState({
@@ -20,7 +21,7 @@ export default function CadastroFeiranteScreen({ navigation }) {
     senha: '',
   });
 
-  const [mensagem, setMensagem] = useState(null); // { tipo: 'erro' | 'sucesso', texto: string }
+  const [mensagem, setMensagem] = useState(null); 
 
   const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
@@ -40,7 +41,7 @@ export default function CadastroFeiranteScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post('http://10.1.59.59:8080/api/feirantes', form);
+      const response = await axios.post(`${API_URL}/feirantes`, form);
       const res = response.data;
 
       if (res.success) {

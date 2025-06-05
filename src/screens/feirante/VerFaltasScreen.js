@@ -13,6 +13,8 @@ import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/nativ
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function VerFaltasScreen() {
   const route = useRoute();
@@ -26,13 +28,14 @@ export default function VerFaltasScreen() {
     try {
       setCarregando(true);
       const token = await AsyncStorage.getItem('token');
-      const res = await fetch(`http://10.1.59.59:8080/api/faltas/feirante/${feiranteId}`, {
+
+      const response = await axios.get(`${API_URL}/faltas/feirante/${feiranteId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const json = await res.json();
+      const json = response.data;
 
       if (json.success) {
         setFaltas(json.data);
@@ -47,7 +50,6 @@ export default function VerFaltasScreen() {
     }
   };
 
-  // Carregar sempre que a tela voltar ao foco
   useFocusEffect(
     useCallback(() => {
       carregarFaltas();

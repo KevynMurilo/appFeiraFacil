@@ -13,6 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function JustificarFaltaScreen() {
   const navigation = useNavigation();
@@ -38,7 +39,7 @@ export default function JustificarFaltaScreen() {
       }
 
       const response = await axios.post(
-        `http://10.1.59.59:8080/api/justificativas`,
+        `${API_URL}/justificativas`,
         {
           faltaId,
           motivo,

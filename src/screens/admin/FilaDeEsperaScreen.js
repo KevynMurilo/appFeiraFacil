@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import { API_URL } from '../../config/api';
 
 export default function FilaDeEsperaScreen() {
   const [feiras, setFeiras] = useState([]);
@@ -21,7 +22,7 @@ export default function FilaDeEsperaScreen() {
   useEffect(() => {
     const carregarFeiras = async () => {
       try {
-        const response = await axios.get('http://10.1.59.59:8080/api/feiras');
+        const response = await axios.get(`${API_URL}/feiras`);
         const res = response.data;
         if (res.success) {
           setFeiras(res.data);

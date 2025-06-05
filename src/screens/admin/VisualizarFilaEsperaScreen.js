@@ -11,6 +11,7 @@ import {
 import axios from 'axios';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import { useNavigation } from '@react-navigation/native';
+import { API_URL } from '../../config/api';
 
 export default function VisualizarFilaEsperaScreen({ route }) {
   const { feira } = route.params;
@@ -23,7 +24,7 @@ export default function VisualizarFilaEsperaScreen({ route }) {
     setCarregando(true);
     try {
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/fila-espera/feira/${feira.id}`
+        `${API_URL}/fila-espera/feira/${feira.id}`
       );
       const res = response.data;
       if (res.success) {

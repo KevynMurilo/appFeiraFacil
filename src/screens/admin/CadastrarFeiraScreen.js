@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function CadastrarFeiraScreen() {
   const navigation = useNavigation();
@@ -46,7 +47,7 @@ export default function CadastrarFeiraScreen() {
     }
 
     try {
-      const response = await axios.post('http://10.1.59.59:8080/api/feiras', {
+      const response = await axios.post(`${API_URL}/feiras`, {
         nome,
         local,
         diasSemana,

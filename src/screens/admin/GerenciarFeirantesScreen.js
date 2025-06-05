@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { API_URL } from '../../config/api';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ export default function GerenciarFeirantesScreen() {
   const navigation = useNavigation();
   const [feirantes, setFeirantes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusSelecionado, setStatusSelecionado] = useState(null);
 
   const statusLabel = {
     ATIVO: 'Ativo',
@@ -37,31 +39,35 @@ export default function GerenciarFeirantesScreen() {
     NA_FILA_DE_ESPERA: '#1976D2',
   };
 
+  const carregarFeirantes = async (status = null) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const url = status
+        ? `${API_URL}/feirantes?status=${status}`
+        : `${API_URL}/feirantes`;
+
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        setFeirantes(response.data.data);
+      } else {
+        Alert.alert('Erro', response.data.message || 'Falha ao carregar feirantes');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar feirantes:', error);
+      Alert.alert('Erro', 'Erro ao buscar feirantes do servidor.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
-      const carregarFeirantes = async () => {
-        try {
-          const token = await AsyncStorage.getItem('token');
-          const response = await axios.get('http://10.1.59.59:8080/api/feirantes', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (response.data.success) {
-            setFeirantes(response.data.data);
-          } else {
-            Alert.alert('Erro', response.data.message || 'Falha ao carregar feirantes');
-          }
-        } catch (error) {
-          console.error('Erro ao carregar feirantes:', error);
-          Alert.alert('Erro', 'Erro ao buscar feirantes do servidor.');
-        } finally {
-          setLoading(false);
-        }
-      };
-
       setLoading(true);
-      carregarFeirantes();
-    }, [])
+      carregarFeirantes(statusSelecionado);
+    }, [statusSelecionado])
   );
 
   const renderFeirante = (feirante) => (
@@ -93,12 +99,41 @@ export default function GerenciarFeirantesScreen() {
     </View>
   );
 
+  const renderFiltros = () => (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtroContainer}>
+      <TouchableOpacity
+        style={[
+          styles.filtroBotao,
+          statusSelecionado === null && styles.filtroAtivo,
+        ]}
+        onPress={() => setStatusSelecionado(null)}
+      >
+        <Text style={styles.filtroTexto}>Todos</Text>
+      </TouchableOpacity>
+
+      {Object.entries(statusLabel).map(([status, label]) => (
+        <TouchableOpacity
+          key={status}
+          style={[
+            styles.filtroBotao,
+            statusSelecionado === status && styles.filtroAtivo,
+          ]}
+          onPress={() => setStatusSelecionado(status)}
+        >
+          <Text style={styles.filtroTexto}>{label}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+
   return (
     <SafeAreaView style={styles.safe}>
       {loading ? (
         <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 40 }} />
       ) : (
         <ScrollView contentContainerStyle={styles.container}>
+          {renderFiltros()}
+
           {feirantes.length > 0 ? (
             feirantes.map(renderFeirante)
           ) : (
@@ -165,5 +200,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  filtroContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    marginTop: 5,
+  },
+  filtroBotao: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    backgroundColor: '#E0E7FF',
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  filtroAtivo: {
+    backgroundColor: '#004AAD',
+  },
+  filtroTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 13,
   },
 });

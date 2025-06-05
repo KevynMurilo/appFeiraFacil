@@ -18,6 +18,7 @@ import {
 import TopoNavegacao from '../../components/TopoNavegacao';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../../config/api';
 
 export default function VerDetalhesFeiranteScreen() {
   const route = useRoute();
@@ -30,7 +31,7 @@ export default function VerDetalhesFeiranteScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
-        `http://10.1.59.59:8080/api/feirantes/${feiranteId}`,
+        `${API_URL}/feirantes/${feiranteId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

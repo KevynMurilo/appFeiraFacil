@@ -15,6 +15,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { API_URL } from '../../config/api';
 
 export default function SubstituirFeiranteScreen() {
   const route = useRoute();
@@ -29,7 +30,7 @@ export default function SubstituirFeiranteScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
-        `http://10.1.59.59:8080/api/fila-espera/proximo-ativo?idFeira=${feiraId}`,
+        `${API_URL}/fila-espera/proximo-ativo?idFeira=${feiraId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -61,7 +62,7 @@ export default function SubstituirFeiranteScreen() {
             try {
               const token = await AsyncStorage.getItem('token');
               const response = await axios.post(
-                `http://10.1.59.59:8080/api/fila-espera/substituir?idFeira=${feiraId}&idFeiranteInativo=${feiranteId}`,
+                `${API_URL}/fila-espera/substituir?idFeira=${feiraId}&idFeiranteInativo=${feiranteId}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );

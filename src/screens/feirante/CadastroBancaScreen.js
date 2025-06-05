@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { API_URL } from '../../config/api';
 
 export default function CadastrarBancaScreen() {
   const navigation = useNavigation();
@@ -36,7 +37,7 @@ export default function CadastrarBancaScreen() {
     setCarregandoFeiras(true);
     setMensagemErro('');
     try {
-      const response = await axios.get('http://10.1.59.59:8080/api/feiras');
+      const response = await axios.get(`${API_URL}/feiras`);
       const res = response.data;
 
       if (res.success && res.data) {
@@ -98,12 +99,11 @@ export default function CadastrarBancaScreen() {
         feiranteId,
       };
 
-      const response = await axios.post('http://10.1.59.59:8080/api/bancas', payload);
+      const response = await axios.post(`${API_URL}/bancas`, payload);
       const res = response.data;
 
       if (res.success) {
         setMensagemSucesso('Banca cadastrada com sucesso!');
-        // 🧹 Limpa os campos após sucesso
         setTipoProduto('');
         setProdutoAtual('');
         setProdutos([]);

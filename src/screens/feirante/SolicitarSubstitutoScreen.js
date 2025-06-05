@@ -15,6 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { API_URL } from '../../config/api';
 
 export default function SolicitarSubstitutoScreen() {
   const [cpf, setCpf] = useState('');
@@ -42,7 +43,7 @@ export default function SolicitarSubstitutoScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/feirantes/buscar?cpf=${cpf}`,
+        `${API_URL}/feirantes/buscar?cpf=${cpf}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -86,7 +87,7 @@ export default function SolicitarSubstitutoScreen() {
       };
 
       const response = await axios.post(
-        'http://10.1.59.59:8080/api/solicitacar-substitutos/enviar',
+        `${API_URL}/solicitacar-substitutos/enviar`,
         payload,
         {
           headers: {

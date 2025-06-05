@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function AtualizarFeiraScreen({ navigation }) {
   const route = useRoute();
@@ -46,10 +47,7 @@ export default function AtualizarFeiraScreen({ navigation }) {
     }
 
     try {
-      const resposta = await axios.put(
-        `http://10.1.59.59:8080/api/feiras/${feira.id}`,
-        feira
-      );
+      const resposta = await axios.put(`${API_URL}/feiras/${feira.id}`, feira);
 
       if (resposta.data.success) {
         Alert.alert('✅ Atualização realizada com sucesso!');

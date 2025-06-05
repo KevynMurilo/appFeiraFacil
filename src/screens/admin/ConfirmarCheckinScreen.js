@@ -15,6 +15,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { API_URL } from '../../config/api';
 
 export default function ConfirmarCheckinScreen() {
   const route = useRoute();
@@ -28,7 +29,7 @@ export default function ConfirmarCheckinScreen() {
     const carregarDados = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        const res = await axios.get(`http://10.1.59.59:8080/api/bancas/qr/${qrCode}`, {
+        const res = await axios.get(`${API_URL}/bancas/qr/${qrCode}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -58,7 +59,7 @@ export default function ConfirmarCheckinScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.post(
-        `http://10.1.59.59:8080/api/checkins`,
+        `${API_URL}/checkins`,
         null,
         {
           params: {

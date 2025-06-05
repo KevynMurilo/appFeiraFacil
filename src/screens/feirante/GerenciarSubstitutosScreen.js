@@ -14,6 +14,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function GerenciarSubstitutosScreen() {
   const navigation = useNavigation();
@@ -35,7 +36,7 @@ export default function GerenciarSubstitutosScreen() {
       }
 
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/substitutos/substituto/${substitutoId}`
+        `${API_URL}/substitutos/substituto/${substitutoId}`
       );
       const res = response.data;
 
@@ -77,7 +78,7 @@ export default function GerenciarSubstitutosScreen() {
             try {
               const token = await AsyncStorage.getItem('token');
               const response = await axios.put(
-                `http://10.1.59.59:8080/api/substitutos/${id}/cancelar`,
+                `${API_URL}/substitutos/${id}/cancelar`,
                 {},
                 {
                   headers: {

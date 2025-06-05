@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function VerDetalhesFeiraScreen() {
   const navigation = useNavigation();
@@ -34,7 +35,7 @@ export default function VerDetalhesFeiraScreen() {
           const tipoUsuario = await AsyncStorage.getItem('tipoUsuario');
           setIsAdmin(tipoUsuario === 'ADMIN');
 
-          const resposta = await axios.get(`http://10.1.59.59:8080/api/feiras/${feiraInicial.id}`);
+          const resposta = await axios.get(`${API_URL}/feiras/${feiraInicial.id}`);
           if (resposta.data.success) {
             setFeira(resposta.data.data);
           } else {
@@ -61,7 +62,7 @@ export default function VerDetalhesFeiraScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const resposta = await axios.delete(`http://10.1.59.59:8080/api/feiras/${feira.id}`);
+              const resposta = await axios.delete(`${API_URL}/feiras/${feira.id}`);
               if (resposta.data.success) {
                 Alert.alert('✅ Feira excluída com sucesso!');
                 navigation.goBack();

@@ -15,6 +15,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { API_URL } from '../../config/api';
 
 export default function EditarPerfilScreen({ navigation }) {
   const [nome, setNome] = useState('');
@@ -40,9 +41,9 @@ export default function EditarPerfilScreen({ navigation }) {
     try {
       const token = await AsyncStorage.getItem('token');
       const tipo = await AsyncStorage.getItem('tipoUsuario');
-      const endpoint = tipo === 'ADMIN' ? '/api/admins/me' : '/api/feirantes/me';
-
-      const res = await axios.get(`http://10.1.59.59:8080${endpoint}`, {
+      const endpoint = tipo === 'ADMIN' ? '/admins/me' : '/feirantes/me'
+      ;
+      const res = await axios.get(`${API_URL}${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -68,11 +69,11 @@ export default function EditarPerfilScreen({ navigation }) {
     try {
         const token = await AsyncStorage.getItem('token');
         const tipo = await AsyncStorage.getItem('tipoUsuario');
-        const endpoint = tipo === 'ADMIN' ? '/api/admins/perfil' : '/api/feirantes/perfil';
+        const endpoint = tipo === 'ADMIN' ? '/admins/perfil' : '/feirantes/perfil';
         const payload = { nome, cpf, telefone, email, senha };
 
-        const res = await axios.put(`http://10.1.59.59:8080${endpoint}`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
+        const res = await axios.put(`${API_URL}${endpoint}`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const { success, message } = res.data;

@@ -15,8 +15,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Picker } from '@react-native-picker/picker';
 import TopoNavegacao from '../../components/TopoNavegacao';
+import { API_URL } from '../../config/api';
 
 export default function FeirantesComFaltasScreen() {
   const route = useRoute();
@@ -44,7 +44,7 @@ export default function FeirantesComFaltasScreen() {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
 
-      let url = `http://10.1.59.59:8080/api/faltas/com-faltas/${feiraId}`;
+      let url = `${API_URL}/faltas/com-faltas/${feiraId}`;
       const params = [];
 
       if (statusSelecionado) params.push(`status=${statusSelecionado}`);
@@ -92,16 +92,32 @@ export default function FeirantesComFaltasScreen() {
 
         <View style={styles.filtroContainer}>
           <Text style={styles.labelFiltro}>Filtrar por status:</Text>
-          <Picker
-            selectedValue={statusSelecionado}
-            onValueChange={(valor) => setStatusSelecionado(valor)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Todos" value="" />
-            <Picker.Item label="PENDENTE" value="PENDENTE" />
-            <Picker.Item label="RECUSADA" value="RECUSADA" />
-            <Picker.Item label="ACEITA" value="ACEITA" />
-          </Picker>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtroStatusRow}>
+            {[
+              { label: 'Todos', value: '' },
+              { label: 'PENDENTE', value: 'PENDENTE' },
+              { label: 'RECUSADA', value: 'RECUSADA' },
+              { label: 'ACEITA', value: 'ACEITA' },
+            ].map(({ label, value }) => (
+              <TouchableOpacity
+                key={value}
+                style={[
+                  styles.statusBotao,
+                  statusSelecionado === value && styles.statusBotaoAtivo,
+                ]}
+                onPress={() => setStatusSelecionado(value)}
+              >
+                <Text
+                  style={[
+                    styles.statusBotaoTexto,
+                    statusSelecionado === value && styles.statusBotaoTextoAtivo,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
           <Text style={styles.labelFiltro}>Mês:</Text>
           <TextInput
@@ -178,35 +194,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-
   container: {
     padding: 20,
   },
-
   filtroContainer: {
     paddingHorizontal: 20,
     paddingBottom: 10,
   },
-
   labelFiltro: {
     fontWeight: 'bold',
     marginTop: 12,
     marginBottom: 4,
     color: '#004AAD',
   },
-
-  picker: {
-    backgroundColor: '#EEE',
-    borderRadius: 6,
+  filtroStatusRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    marginTop: 4,
   },
-
+  statusBotao: {
+    backgroundColor: '#E0E7FF',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  statusBotaoAtivo: {
+    backgroundColor: '#004AAD',
+  },
+  statusBotaoTexto: {
+    color: '#004AAD',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  statusBotaoTextoAtivo: {
+    color: '#fff',
+  },
   input: {
     backgroundColor: '#EEE',
     borderRadius: 6,
     padding: 8,
     marginTop: 4,
   },
-
   botaoBuscar: {
     backgroundColor: '#00AEEF',
     borderRadius: 6,
@@ -214,13 +243,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignItems: 'center',
   },
-
   botaoTexto: {
     color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
   },
-
   card: {
     backgroundColor: '#F2F6FF',
     padding: 15,
@@ -228,60 +255,50 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     elevation: 2,
   },
-
   nome: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#004AAD',
   },
-
   cpf: {
     fontSize: 14,
     color: '#555',
     marginTop: 5,
   },
-
   faltas: {
     fontSize: 14,
     color: '#000',
     marginTop: 4,
   },
-
   faltasRecusadas: {
     fontSize: 14,
     color: '#C62828',
     marginTop: 2,
   },
-
   faltasAceitas: {
     fontSize: 14,
     color: '#2E7D32',
     marginTop: 2,
   },
-
   faltasPendentes: {
     fontSize: 14,
     color: '#FFA000',
     marginTop: 2,
   },
-
   botao: {
     backgroundColor: '#004AAD',
     paddingVertical: 8,
     borderRadius: 6,
     marginTop: 12,
   },
-
   botaoJustificativa: {
     backgroundColor: '#888',
     marginTop: 8,
   },
-
   botaoSubstituir: {
     backgroundColor: '#00796B',
     marginTop: 8,
   },
-
   nenhum: {
     textAlign: 'center',
     marginTop: 40,

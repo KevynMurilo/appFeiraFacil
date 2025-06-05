@@ -12,6 +12,8 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useState } from 'react';
+import axios from 'axios';
+import { API_URL } from '../../config/api';
 
 export default function GerenciarFeirasScreen() {
   const navigation = useNavigation();
@@ -26,8 +28,9 @@ export default function GerenciarFeirasScreen() {
       const tipoUsuario = await AsyncStorage.getItem('tipoUsuario');
       setMostrarBotaoNovaFeira(tipoUsuario === 'ADMIN');
 
-      const res = await fetch('http://10.1.59.59:8080/api/feiras');
-      const json = await res.json();
+      const response = await axios.get(`${API_URL}/feiras`);
+      const json = response.data;
+
       if (json.success && json.data) {
         setFeiras(json.data);
       } else {

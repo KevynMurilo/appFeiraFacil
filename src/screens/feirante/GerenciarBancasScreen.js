@@ -14,6 +14,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
+import { API_URL } from '../../config/api';
 
 export default function GerenciarBancasScreen() {
   const navigation = useNavigation();
@@ -28,8 +29,9 @@ export default function GerenciarBancasScreen() {
       if (!usuarioId) return;
 
       const response = await axios.get(
-        `http://10.1.59.59:8080/api/feiras/com-banca/${usuarioId}`
+        `${API_URL}/feiras/com-banca/${usuarioId}`
       );
+
 
       const res = response.data;
       if (res.success && res.data) {

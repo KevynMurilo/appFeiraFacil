@@ -1,10 +1,13 @@
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { API_URL } from './api';
 
 let stompClient = null;
 
 export const conectarWebSocket = (usuarioId, onMessage) => {
-  const socket = new SockJS('http://10.1.59.59:8080/ws');
+  
+  const baseUrl = API_URL.replace(/\/api$/, '');
+  const socket = new SockJS(`${baseUrl}/ws`);
 
   stompClient = new Client({
     webSocketFactory: () => socket,
