@@ -16,7 +16,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [statusMessage, setStatusMessage] = useState(null);
-  const [statusType, setStatusType] = useState(null); // 'success' | 'error'
+  const [statusType, setStatusType] = useState(null); 
 
   const exibirMensagem = (mensagem, tipo) => {
     setStatusMessage(mensagem);
@@ -48,7 +48,6 @@ export default function LoginScreen({ navigation }) {
 
       const { token, tipoUsuario, usuario } = res.data;
 
-      // Salvando no AsyncStorage
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('tipoUsuario', tipoUsuario);
       await AsyncStorage.setItem('usuarioId', usuario.id);
@@ -57,7 +56,6 @@ export default function LoginScreen({ navigation }) {
       
       exibirMensagem('Login realizado com sucesso!', 'success');
 
-      // Redirecionamento conforme tipo de usuário
       if (tipoUsuario === 'FEIRANTE') {
         setTimeout(() => {
           navigation.replace('FeiranteDrawer', {

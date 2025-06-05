@@ -57,9 +57,10 @@ export default function FilaDeEsperaScreen() {
           feiras.map((item) => (
             <TouchableOpacity key={item.id} style={styles.card} onPress={() => abrirFila(item)}>
               <Text style={styles.nome}>{item.nome}</Text>
-              <Text style={styles.info}>📍 {item.local}</Text>
-              <Text style={styles.info}>🗓 {item.diasSemana} às {item.horario}</Text>
-              <Text style={styles.info}>👥 {item.quantidadeFeirantes}/{item.maxFeirantes}</Text>
+              <Text style={styles.info}><Text style={styles.label}>LOCAL:</Text> {item.local}</Text>
+              <Text style={styles.info}><Text style={styles.label}>HORÁRIOS:</Text> {item.horario}</Text>
+              <Text style={styles.info}><Text style={styles.label}>CAPACIDADE:</Text> {item.quantidadeFeirantes}/{item.maxFeirantes}</Text>
+              <Text style={styles.info}><Text style={styles.label}>FILA DE ESPERA:</Text> {item.quantidadeFilaDeEspera}</Text>
             </TouchableOpacity>
           ))
         )}
@@ -95,12 +96,17 @@ const styles = StyleSheet.create({
   nome: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#004AAD',
+    marginBottom: 6,
   },
   info: {
     fontSize: 14,
     color: '#555',
     marginTop: 4,
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#004AAD',
   },
   erro: {
     color: 'red',

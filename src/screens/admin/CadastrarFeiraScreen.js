@@ -22,15 +22,27 @@ export default function CadastrarFeiraScreen() {
   const [feira, setFeira] = useState({
     nome: '',
     local: '',
-    diasSemana: '',
-    horario: '',
     maxFeirantes: '',
     latitude: null,
     longitude: null,
   });
 
+  const [horarios, setHorarios] = useState([
+    { dia: '', horarioInicio: '', horarioFim: '' },
+  ]);
+
   const handleChange = (field, value) => {
     setFeira({ ...feira, [field]: value });
+  };
+
+  const handleHorarioChange = (index, field, value) => {
+    const novosHorarios = [...horarios];
+    novosHorarios[index][field] = value.toUpperCase();
+    setHorarios(novosHorarios);
+  };
+
+  const adicionarHorario = () => {
+    setHorarios([...horarios, { dia: '', horarioInicio: '', horarioFim: '' }]);
   };
 
   const handleMapPress = (e) => {
@@ -39,10 +51,15 @@ export default function CadastrarFeiraScreen() {
   };
 
   const handleSalvar = async () => {
-    const { nome, local, diasSemana, horario, maxFeirantes, latitude, longitude } = feira;
+    const { nome, local, maxFeirantes, latitude, longitude } = feira;
 
-    if (!nome || !local || !diasSemana || !horario || !maxFeirantes || latitude === null || longitude === null) {
-      Alert.alert('Campos obrigatórios', 'Preencha todos os campos.');
+    if (!nome || !local || !maxFeirantes || latitude === null || longitude === null) {
+      Alert.alert('Campos obrigatórios', 'Preencha todos os campos da feira.');
+      return;
+    }
+
+    if (horarios.some(h => !h.dia || !h.horarioInicio || !h.horarioFim)) {
+      Alert.alert('Campos obrigatórios', 'Preencha todos os campos de horário.');
       return;
     }
 
@@ -50,20 +67,17 @@ export default function CadastrarFeiraScreen() {
       const response = await axios.post(`${API_URL}/feiras`, {
         nome,
         local,
-        diasSemana,
-        horario,
         maxFeirantes: parseInt(maxFeirantes),
         latitude: latitude.toString(),
         longitude: longitude.toString(),
+        horarios
       });
 
-      const data = response.data;
-
-      if (data.success) {
+      if (response.data.success) {
         Alert.alert('Sucesso', 'Feira cadastrada com sucesso!');
         navigation.goBack();
       } else {
-        Alert.alert('Erro', data.message || 'Erro ao cadastrar a feira.');
+        Alert.alert('Erro', response.data.message || 'Erro ao cadastrar a feira.');
       }
     } catch (error) {
       console.error(error);
@@ -75,11 +89,8 @@ export default function CadastrarFeiraScreen() {
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Cadastrar Feira" />
       <ScrollView contentContainerStyle={styles.container}>
-        {[
-          { label: 'Nome da Feira', key: 'nome' },
+        {[{ label: 'Nome da Feira', key: 'nome' },
           { label: 'Local', key: 'local' },
-          { label: 'Dias da Semana', key: 'diasSemana' },
-          { label: 'Horário (ex: 07:00)', key: 'horario' },
           { label: 'Máx. Feirantes', key: 'maxFeirantes', keyboard: 'numeric' },
         ].map(({ label, key, keyboard }) => (
           <View key={key} style={styles.inputGroup}>
@@ -94,6 +105,34 @@ export default function CadastrarFeiraScreen() {
             />
           </View>
         ))}
+
+        <Text style={styles.label}>Horários da Feira</Text>
+        {horarios.map((item, index) => (
+          <View key={index} style={styles.horarioCard}>
+            <TextInput
+              style={styles.input}
+              placeholder="Dia (ex: SABADO)"
+              value={item.dia}
+              onChangeText={(value) => handleHorarioChange(index, 'dia', value)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Início (ex: 07:00)"
+              value={item.horarioInicio}
+              onChangeText={(value) => handleHorarioChange(index, 'horarioInicio', value)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Fim (ex: 12:00)"
+              value={item.horarioFim}
+              onChangeText={(value) => handleHorarioChange(index, 'horarioFim', value)}
+            />
+          </View>
+        ))}
+        <TouchableOpacity onPress={adicionarHorario} style={styles.botaoAdicionar}>
+          <Ionicons name="add" size={20} color="#004AAD" />
+          <Text style={styles.addText}>Adicionar Horário</Text>
+        </TouchableOpacity>
 
         <Text style={styles.label}>Localização (clique no mapa)</Text>
         <MapView
@@ -127,23 +166,10 @@ export default function CadastrarFeiraScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    padding: 20,
-    paddingBottom: 40,
-    backgroundColor: '#fff',
-  },
-  inputGroup: {
-    marginBottom: 15,
-  },
-  label: {
-    fontWeight: '600',
-    color: '#004AAD',
-    marginBottom: 4,
-  },
+  safe: { flex: 1, backgroundColor: '#fff' },
+  container: { padding: 20, paddingBottom: 40 },
+  inputGroup: { marginBottom: 15 },
+  label: { fontWeight: '600', color: '#004AAD', marginBottom: 4 },
   input: {
     backgroundColor: '#F2F6FF',
     borderRadius: 8,
@@ -152,7 +178,9 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderWidth: 1,
     color: '#333',
+    marginBottom: 10,
   },
+  horarioCard: { marginBottom: 15 },
   map: {
     width: '100%',
     height: 250,
@@ -180,5 +208,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginLeft: 8,
+  },
+  botaoAdicionar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 15,
+  },
+  addText: {
+    color: '#004AAD',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });

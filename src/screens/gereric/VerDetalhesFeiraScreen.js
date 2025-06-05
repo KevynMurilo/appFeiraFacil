@@ -87,7 +87,7 @@ export default function VerDetalhesFeiraScreen() {
           <Info label="Nome" valor={feira.nome} />
           <Info label="Local" valor={feira.local} />
           <Info label="Dias da Semana" valor={feira.diasSemana} />
-          <Info label="Horário" valor={`${feira.horario}h`} />
+          <Info label="Horários" valor={feira.horario} />
           <Info
             label="Feirantes Atuais / Limite"
             valor={`${feira.quantidadeFeirantes} / ${feira.maxFeirantes}`}
@@ -114,7 +114,6 @@ export default function VerDetalhesFeiraScreen() {
         </MapView>
         <Text style={styles.rodapeMapa}>Formosa - Goiás</Text>
 
-        {/* Botões movidos para dentro do ScrollView */}
         <View style={styles.botoesInferiores}>
           <TouchableOpacity
             style={styles.botaoMapa}
