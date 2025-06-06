@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { API_URL } from '../../config/api';
@@ -19,6 +20,7 @@ export default function GerenciarFeirantesScreen() {
   const navigation = useNavigation();
   const [feirantes, setFeirantes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [statusSelecionado, setStatusSelecionado] = useState(null);
 
   const statusLabel = {
@@ -60,6 +62,7 @@ export default function GerenciarFeirantesScreen() {
       Alert.alert('Erro', 'Erro ao buscar feirantes do servidor.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -69,6 +72,11 @@ export default function GerenciarFeirantesScreen() {
       carregarFeirantes(statusSelecionado);
     }, [statusSelecionado])
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await carregarFeirantes(statusSelecionado);
+  };
 
   const renderFeirante = (feirante) => (
     <View key={feirante.id} style={styles.card}>
@@ -131,13 +139,20 @@ export default function GerenciarFeirantesScreen() {
       {loading ? (
         <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 40 }} />
       ) : (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />
+          }
+        >
           {renderFiltros()}
 
           {feirantes.length > 0 ? (
             feirantes.map(renderFeirante)
           ) : (
-            <Text style={{ textAlign: 'center', marginTop: 30 }}>Nenhum feirante encontrado.</Text>
+            <Text style={{ textAlign: 'center', marginTop: 30 }}>
+              Nenhum feirante encontrado.
+            </Text>
           )}
         </ScrollView>
       )}

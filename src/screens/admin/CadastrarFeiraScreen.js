@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
-  Platform,
   Modal,
   FlatList,
 } from 'react-native';
@@ -18,8 +17,9 @@ import MapView, { Marker } from 'react-native-maps';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import axios from 'axios';
 import { API_URL } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const diasSemana = ["SEGUNDA", "TERCA", "QUARTA", "QUINTA", "SEXTA", "SABADO", "DOMINGO"];
+const diasSemana = ['SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO'];
 
 const gerarHorarios = () => {
   const horas = [];
@@ -32,8 +32,8 @@ const gerarHorarios = () => {
 
 export default function CadastrarFeiraScreen() {
   const navigation = useNavigation();
-  const [feira, setFeira] = useState({ nome: '', local: '', maxFeirantes: '', latitude: null, longitude: null });
-  const [horarios, setHorarios] = useState([{ dia: '', horarioInicio: '', horarioFim: '' }]);
+  const [feira, setFeira] = useState({ nome: '', local: '', latitude: null, longitude: null });
+  const [horarios, setHorarios] = useState([{ dia: '', horarioInicio: '', horarioFim: '', maxFeirantes: '' }]);
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerType, setPickerType] = useState({ index: 0, field: '', options: [] });
 
@@ -50,7 +50,13 @@ export default function CadastrarFeiraScreen() {
     setModalVisible(true);
   };
 
-  const adicionarHorario = () => setHorarios([...horarios, { dia: '', horarioInicio: '', horarioFim: '' }]);
+  const adicionarHorario = () => setHorarios([...horarios, { dia: '', horarioInicio: '', horarioFim: '', maxFeirantes: '' }]);
+
+  const removerHorario = (index) => {
+    const novosHorarios = [...horarios];
+    novosHorarios.splice(index, 1);
+    setHorarios(novosHorarios);
+  };
 
   const handleMapPress = (e) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
@@ -58,24 +64,51 @@ export default function CadastrarFeiraScreen() {
   };
 
   const handleSalvar = async () => {
-    const { nome, local, maxFeirantes, latitude, longitude } = feira;
-    if (!nome || !local || !maxFeirantes || latitude === null || longitude === null) {
+    const { nome, local, latitude, longitude } = feira;
+
+    if (!nome || !local || latitude === null || longitude === null) {
       Alert.alert('Campos obrigatórios', 'Preencha todos os campos da feira.');
       return;
     }
-    if (horarios.some(h => !h.dia || !h.horarioInicio || !h.horarioFim)) {
-      Alert.alert('Campos obrigatórios', 'Preencha todos os campos de horário.');
-      return;
+
+    for (let i = 0; i < horarios.length; i++) {
+      const { dia, horarioInicio, horarioFim, maxFeirantes } = horarios[i];
+      if (!dia || !horarioInicio || !horarioFim || !maxFeirantes) {
+        Alert.alert('Campos obrigatórios', 'Preencha todos os campos de horário.');
+        return;
+      }
+
+      const inicioMin = parseInt(horarioInicio.split(':')[0]) * 60 + parseInt(horarioInicio.split(':')[1]);
+      const fimMin = parseInt(horarioFim.split(':')[0]) * 60 + parseInt(horarioFim.split(':')[1]);
+
+      if (fimMin <= inicioMin) {
+        Alert.alert('Horário inválido', `O fim deve ser após o início no item ${i + 1}.`);
+        return;
+      }
     }
+
     try {
-      const response = await axios.post(`${API_URL}/feiras`, {
-        nome,
-        local,
-        maxFeirantes: parseInt(maxFeirantes),
-        latitude: latitude.toString(),
-        longitude: longitude.toString(),
-        horarios
-      });
+      const token = await AsyncStorage.getItem('token');
+
+      const response = await axios.post(
+        `${API_URL}/feiras`,
+        {
+          nome,
+          local,
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+          horarios: horarios.map((h) => ({
+            dia: h.dia,
+            horarioInicio: h.horarioInicio,
+            horarioFim: h.horarioFim,
+            maxFeirantes: parseInt(h.maxFeirantes),
+          })),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       if (response.data.success) {
         Alert.alert('Sucesso', 'Feira cadastrada com sucesso!');
         navigation.goBack();
@@ -92,14 +125,13 @@ export default function CadastrarFeiraScreen() {
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Cadastrar Feira" />
       <ScrollView contentContainerStyle={styles.container}>
-        {[{ label: 'Nome da Feira', key: 'nome' }, { label: 'Local', key: 'local' }, { label: 'Máx. Feirantes', key: 'maxFeirantes', keyboard: 'numeric' }].map(({ label, key, keyboard }) => (
+        {[{ label: 'Nome da Feira', key: 'nome' }, { label: 'Local', key: 'local' }].map(({ label, key }) => (
           <View key={key} style={styles.inputGroup}>
             <Text style={styles.label}>{label}:</Text>
             <TextInput
               style={styles.input}
               value={feira[key]}
               onChangeText={(value) => handleChange(key, value)}
-              keyboardType={keyboard || 'default'}
               placeholder={`Digite ${label.toLowerCase()}`}
               placeholderTextColor="#999"
             />
@@ -109,26 +141,34 @@ export default function CadastrarFeiraScreen() {
         <Text style={styles.label}>Horários da Feira</Text>
         {horarios.map((item, index) => (
           <View key={index} style={styles.horarioCard}>
-            <TouchableOpacity
-              style={styles.select}
-              onPress={() => openPicker(index, 'dia', diasSemana)}
-            >
-              <Text style={styles.selectText}>{item.dia || 'Selecione o dia'}</Text>
-            </TouchableOpacity>
+            <View style={styles.horarioLinha}>
+              <TouchableOpacity style={[styles.select, { flex: 1 }]} onPress={() => openPicker(index, 'dia', diasSemana)}>
+                <Text style={styles.selectText}>{item.dia || 'Dia'}</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.select}
-              onPress={() => openPicker(index, 'horarioInicio', gerarHorarios())}
-            >
-              <Text style={styles.selectText}>{item.horarioInicio || 'Horário de Início'}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={[styles.select, { flex: 1 }]} onPress={() => openPicker(index, 'horarioInicio', gerarHorarios())}>
+                <Text style={styles.selectText}>{item.horarioInicio || 'Início'}</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.select}
-              onPress={() => openPicker(index, 'horarioFim', gerarHorarios())}
-            >
-              <Text style={styles.selectText}>{item.horarioFim || 'Horário de Fim'}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={[styles.select, { flex: 1 }]} onPress={() => openPicker(index, 'horarioFim', gerarHorarios())}>
+                <Text style={styles.selectText}>{item.horarioFim || 'Fim'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Máximo de feirantes nesse horário"
+              placeholderTextColor="#999"
+              keyboardType="numeric"
+              value={item.maxFeirantes}
+              onChangeText={(value) => handleHorarioChange(index, 'maxFeirantes', value)}
+            />
+
+            {horarios.length > 1 && (
+              <TouchableOpacity onPress={() => removerHorario(index)} style={styles.botaoRemover}>
+                <Ionicons name="trash-outline" size={22} color="#FF4D4F" />
+              </TouchableOpacity>
+            )}
           </View>
         ))}
 
@@ -188,22 +228,10 @@ export default function CadastrarFeiraScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  inputGroup: {
-    marginBottom: 15,
-  },
-  label: {
-    fontWeight: '600',
-    color: '#004AAD',
-    marginBottom: 4,
-  },
+  safe: { flex: 1, backgroundColor: '#fff' },
+  container: { padding: 20, paddingBottom: 40 },
+  inputGroup: { marginBottom: 15 },
+  label: { fontWeight: '600', color: '#004AAD', marginBottom: 4 },
   input: {
     backgroundColor: '#F2F6FF',
     borderRadius: 8,
@@ -214,21 +242,40 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 10,
   },
+  horarioCard: {
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 10,
+  },
+  horarioLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
   select: {
     backgroundColor: '#F2F6FF',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 10,
     borderColor: '#ccc',
     borderWidth: 1,
   },
-  selectText: {
-    fontSize: 16,
-    color: '#333',
+  selectText: { fontSize: 15, color: '#333' },
+  botaoRemover: {
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  horarioCard: {
-    marginBottom: 20,
+  botaoAdicionar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 15,
   },
+  addText: { color: '#004AAD', fontSize: 15, fontWeight: '500', marginLeft: 6 },
   map: {
     width: '100%',
     height: 250,
@@ -256,18 +303,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginLeft: 8,
-  },
-  botaoAdicionar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginBottom: 15,
-  },
-  addText: {
-    color: '#004AAD',
-    fontSize: 15,
-    fontWeight: '500',
-    marginLeft: 6,
   },
   modalOverlay: {
     flex: 1,

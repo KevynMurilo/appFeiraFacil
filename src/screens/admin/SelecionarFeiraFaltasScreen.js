@@ -11,6 +11,7 @@ import {
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import { API_URL } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SelecionarFeiraFaltasScreen() {
   const [feiras, setFeiras] = useState([]);
@@ -21,7 +22,14 @@ export default function SelecionarFeiraFaltasScreen() {
   useEffect(() => {
     const carregarFeiras = async () => {
       try {
-        const response = await axios.get(`${API_URL}/feiras`);
+        const token = await AsyncStorage.getItem('token');
+
+        const response = await axios.get(`${API_URL}/feiras`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const res = response.data;
         if (res.success) {
           setFeiras(res.data);
@@ -43,6 +51,12 @@ export default function SelecionarFeiraFaltasScreen() {
     navigation.navigate('FeirantesComTresFaltas', { feiraId: feira.id });
   };
 
+  const formatarHorarios = (horarios) => {
+    return horarios
+      .map((h) => `${h.dia}: ${h.horarioInicio} - ${h.horarioFim}`)
+      .join('\n');
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -56,11 +70,20 @@ export default function SelecionarFeiraFaltasScreen() {
           feiras.map((item) => (
             <TouchableOpacity key={item.id} style={styles.card} onPress={() => abrirFaltosos(item)}>
               <Text style={styles.nome}>{item.nome}</Text>
-              <Text style={styles.info}><Text style={styles.label}>LOCAL:</Text> {item.local}</Text>
-              <Text style={styles.info}><Text style={styles.label}>HORÁRIOS:</Text> {item.horario}</Text>
-              <Text style={styles.info}><Text style={styles.label}>CAPACIDADE:</Text> {item.quantidadeFeirantes}/{item.maxFeirantes}</Text>
-              <Text style={styles.info}><Text style={styles.label}>FILA DE ESPERA:</Text> {item.quantidadeFilaDeEspera}</Text>
-              </TouchableOpacity>
+              <Text style={styles.info}>
+                <Text style={styles.label}>LOCAL:</Text> {item.local}
+              </Text>
+              <Text style={styles.info}>
+                <Text style={styles.label}>HORÁRIOS:</Text>{'\n'}
+                {formatarHorarios(item.horarios)}
+              </Text>
+              <Text style={styles.info}>
+                <Text style={styles.label}>CAPACIDADE:</Text> {item.quantidadeFeirantes}/{item.maxFeirantes}
+              </Text>
+              <Text style={styles.info}>
+                <Text style={styles.label}>FILA DE ESPERA:</Text> {item.quantidadeFilaDeEspera}
+              </Text>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

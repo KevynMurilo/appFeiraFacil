@@ -29,15 +29,23 @@ export default function GerenciarSubstitutosScreen() {
 
     try {
       const substitutoId = await AsyncStorage.getItem('usuarioId');
-      if (!substitutoId) {
-        setErro('Usuário não identificado.');
+      const token = await AsyncStorage.getItem('token');
+
+      if (!substitutoId || !token) {
+        setErro('Usuário não identificado ou token ausente.');
         setCarregando(false);
         return;
       }
 
       const response = await axios.get(
-        `${API_URL}/substitutos/substituto/${substitutoId}`
+        `${API_URL}/substitutos/substituto/${substitutoId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
       const res = response.data;
 
       if (res.success && res.data) {

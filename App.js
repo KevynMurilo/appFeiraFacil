@@ -2,17 +2,18 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import FlashMessage from 'react-native-flash-message';
+import * as SplashScreen from 'expo-splash-screen';
 
 import { iniciarWebSocketComNotificacoes } from './src/config/websocketNotificacao';
 
-import SplashScreen from './src/screens/gereric/SplashScreen';
+// Telas
+import CheckConnectionScreen from './src/screens/gereric/CheckConnectionScreen';
+import SplashScreenApp from './src/screens/gereric/SplashScreen';
 import LoginScreen from './src/screens/gereric/LoginScreen';
 import CadastroFeiranteScreen from './src/screens/feirante/CadastroFeiranteScreen';
 import VerDetalhesFeiranteScreen from './src/screens/admin/VerDetalhesFeiranteScreen';
 import CadastrarFeiraScreen from './src/screens/admin/CadastrarFeiraScreen';
 import AtualizarFeiraScreen from './src/screens/admin/AtualizarFeiraScreen';
-
-
 import FeiranteDrawer from './src/navigation/FeiranteDrawer';
 import AdminDrawer from './src/navigation/AdminDrawer';
 import VerQrCodeScreen from './src/screens/feirante/VerQrCodeScreen';
@@ -29,26 +30,33 @@ import JustificarFaltaScreen from './src/screens/feirante/JustificarFaltaScreen'
 import SelecionarFeiraFaltasScreen from './src/screens/admin/SelecionarFeiraFaltasScreen';
 import VerFaltasScreen from './src/screens/feirante/VerFaltasScreen';
 import EditarPerfilScreen from './src/screens/feirante/EditarPerfilScreen';
+import AtualizarBancaScreen from './src/screens/feirante/AtualizarBancaScreen';
 
 const Stack = createStackNavigator();
+
+// Impede splash da Expo de esconder automaticamente
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   useEffect(() => {
     iniciarWebSocketComNotificacoes();
+
+    // Oculta splash da Expo assim que o app monta
+    SplashScreen.hideAsync();
   }, []);
 
   return (
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Splash"
+          initialRouteName="VerificarConexao"
           screenOptions={{
             headerShown: false,
             ...TransitionPresets.SlideFromRightIOS,
           }}
         >
-          {/* Tela inicial que decide o fluxo */}
-          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="VerificarConexao" component={CheckConnectionScreen} />
+          <Stack.Screen name="Splash" component={SplashScreenApp} />
 
           {/* Acesso geral */}
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -58,6 +66,7 @@ export default function App() {
           <Stack.Screen name="FeiranteDrawer" component={FeiranteDrawer} />
           <Stack.Screen name="Solicitar-Substituto" component={SolicitarSubstitutoScreen} />
           <Stack.Screen name="CadastrarBanca" component={CadastrarBancaScreen} />
+          <Stack.Screen name="EditarBanca" component={AtualizarBancaScreen} />
           <Stack.Screen name="VerQrCode" component={VerQrCodeScreen} />
           <Stack.Screen name="VerMinhaBanca" component={VerBancaScreen} />
           <Stack.Screen name="JustificarFalta" component={JustificarFaltaScreen} />

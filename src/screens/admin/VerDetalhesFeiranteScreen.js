@@ -9,6 +9,7 @@ import {
   Alert,
   TouchableOpacity,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import {
@@ -26,6 +27,7 @@ export default function VerDetalhesFeiranteScreen() {
 
   const [feirante, setFeirante] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const buscarFeirante = async () => {
     try {
@@ -45,12 +47,18 @@ export default function VerDetalhesFeiranteScreen() {
       Alert.alert('Erro', 'Não foi possível carregar os dados do feirante.');
     } finally {
       setCarregando(false);
+      setRefreshing(false);
     }
   };
 
   useEffect(() => {
     buscarFeirante();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await buscarFeirante();
+  };
 
   if (carregando) {
     return (
@@ -128,8 +136,12 @@ export default function VerDetalhesFeiranteScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Feirante" />
-
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#004AAD']} />
+        }
+      >
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="person-circle-outline" size={24} color="#004AAD" />

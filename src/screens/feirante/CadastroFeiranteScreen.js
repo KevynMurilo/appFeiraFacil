@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { API_URL } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CadastroFeiranteScreen({ navigation }) {
   const [form, setForm] = useState({
@@ -32,7 +33,7 @@ export default function CadastroFeiranteScreen({ navigation }) {
     setTimeout(() => setMensagem(null), 3000);
   };
 
-  const registrarFeirante = async () => {
+ const registrarFeirante = async () => {
     const { nome, cpf, telefone, email, senha } = form;
 
     if (!nome || !cpf || !telefone || !email || !senha) {
@@ -41,7 +42,16 @@ export default function CadastroFeiranteScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/feirantes`, form);
+      const token = await AsyncStorage.getItem('token');
+
+      const headers = token
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+
+      const response = await axios.post(`${API_URL}/feirantes`, form, {
+        headers,
+      });
+
       const res = response.data;
 
       if (res.success) {
@@ -78,12 +88,14 @@ export default function CadastroFeiranteScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Nome completo"
+          placeholderTextColor="#999"
           value={form.nome}
           onChangeText={(v) => handleChange('nome', v)}
         />
         <TextInput
           style={styles.input}
           placeholder="CPF"
+          placeholderTextColor="#999"
           value={form.cpf}
           onChangeText={(v) => handleChange('cpf', v)}
           keyboardType="numeric"
@@ -91,6 +103,7 @@ export default function CadastroFeiranteScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Telefone"
+          placeholderTextColor="#999"
           value={form.telefone}
           onChangeText={(v) => handleChange('telefone', v)}
           keyboardType="phone-pad"
@@ -98,6 +111,7 @@ export default function CadastroFeiranteScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Email"
+          placeholderTextColor="#999"
           value={form.email}
           onChangeText={(v) => handleChange('email', v)}
           autoCapitalize="none"
@@ -106,6 +120,7 @@ export default function CadastroFeiranteScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Senha"
+          placeholderTextColor="#999"
           value={form.senha}
           onChangeText={(v) => handleChange('senha', v)}
           secureTextEntry

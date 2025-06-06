@@ -60,11 +60,17 @@ export default function CadastrarBancaScreen() {
   const carregarHorarios = async (feiraId) => {
     setCarregandoHorarios(true);
     try {
-      const response = await axios.get(`${API_URL}/horarios/feira/${feiraId}`);
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/horarios/feira/${feiraId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const res = response.data;
       if (res.success && res.data) {
         setHorariosDisponiveis(res.data);
-        setHorariosSelecionados([]); 
+        setHorariosSelecionados([]);
       } else {
         setHorariosDisponiveis([]);
         setHorariosSelecionados([]);
@@ -75,6 +81,7 @@ export default function CadastrarBancaScreen() {
       setCarregandoHorarios(false);
     }
   };
+
 
   useEffect(() => {
     carregarFeiras();
@@ -116,8 +123,8 @@ export default function CadastrarBancaScreen() {
     setMensagemErro('');
     setMensagemSucesso('');
 
-    if (!tipoProduto || produtos.length === 0 || !feiraSelecionada || horariosSelecionados.length === 0) {
-      setMensagemErro('Preencha todos os campos e selecione pelo menos um horário.');
+    if (!tipoProduto || produtos.length === 0 || !feiraSelecionada) {
+      setMensagemErro('Preencha todos os campos obrigatórios.');
       return;
     }
 
@@ -131,12 +138,19 @@ export default function CadastrarBancaScreen() {
       const payload = {
         tipoProduto,
         produtos,
-        feiraId: feiraSelecionada,
         feiranteId,
+        feiraId: feiraSelecionada,
         horarioIds: horariosSelecionados,
       };
 
-      const response = await axios.post(`${API_URL}/bancas`, payload);
+      const token = await AsyncStorage.getItem('token');
+
+      const response = await axios.post(`${API_URL}/bancas`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const res = response.data;
 
       if (res.success) {
@@ -215,7 +229,11 @@ export default function CadastrarBancaScreen() {
           onChangeText={setTipoProduto}
         />
 
-        <Text style={styles.label}>📦 Adicionar Produto</Text>
+        <Text style={styles.label}>📦 Adicionar Produtos</Text>
+        <Text style={styles.instrucao}>
+          Escreva o nome de cada produto individualmente e toque em "Adicionar Produto". Você pode adicionar vários produtos à sua banca.
+        </Text>
+
         <View style={styles.linhaProduto}>
           <TextInput
             style={[styles.input, { flex: 1 }]}
@@ -223,8 +241,9 @@ export default function CadastrarBancaScreen() {
             value={produtoAtual}
             onChangeText={setProdutoAtual}
           />
-          <TouchableOpacity onPress={adicionarProduto} style={styles.botaoAdd}>
-            <Ionicons name="add-circle" size={30} color="#00AEEF" />
+          <TouchableOpacity onPress={adicionarProduto} style={styles.botaoAddProduto}>
+            <Ionicons name="add-circle-outline" size={24} color="#004AAD" />
+            <Text style={styles.textoAddProduto}>Adicionar</Text>
           </TouchableOpacity>
         </View>
 
@@ -349,4 +368,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  instrucao: {
+  fontSize: 13,
+  color: '#555',
+  marginBottom: 6,
+  fontStyle: 'italic',
+},
+botaoAddProduto: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#E0F0FF',
+  paddingHorizontal: 10,
+  paddingVertical: 6,
+  borderRadius: 8,
+},
+textoAddProduto: {
+  color: '#004AAD',
+  fontWeight: '600',
+  marginLeft: 6,
+},
 });

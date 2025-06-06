@@ -53,7 +53,6 @@ export default function JustificarFaltaScreen() {
       );
 
       const res = response.data;
-      console.log(res);
 
       if (res.success) {
         Alert.alert('Sucesso', 'Justificativa enviada com sucesso!');

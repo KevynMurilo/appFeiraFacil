@@ -53,7 +53,7 @@ export default function EditarPerfilScreen({ navigation }) {
       setTelefone(data.telefone);
       setEmail(data.email);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       exibirMensagem('Erro ao carregar dados.', 'erro');
     } finally {
       setCarregando(false);

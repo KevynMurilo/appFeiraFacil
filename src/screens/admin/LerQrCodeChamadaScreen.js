@@ -40,7 +40,6 @@ export default function LerQrCodeChamadaScreen() {
     if (scanned) return;
     setScanned(true);
 
-    console.log(data);
     navigation.navigate('ConfirmarCheckin', { qrCode: data });
 
     setTimeout(() => setScanned(false), 3000);

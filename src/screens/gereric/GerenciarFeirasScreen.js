@@ -56,32 +56,37 @@ export default function GerenciarFeirasScreen() {
     carregarFeiras();
   }, []);
 
-  const renderFeira = (feira) => {
-    const vagasOcupadas = feira.quantidadeFeirantes;
-    const vagas = feira.vagasDisponiveis;
+  const renderFeira = (feira) => (
+    <View key={feira.id} style={styles.card}>
+      <Text style={styles.nome}>{feira.nome}</Text>
+      <Text style={styles.info}>
+        <Text style={styles.label}>Local:</Text> {feira.local}
+      </Text>
 
-    return (
-      <View key={feira.id} style={styles.card}>
-        <Text style={styles.nome}>{feira.nome}</Text>
-        <Text style={styles.info}>
-          <Text style={styles.label}>Local:</Text> {feira.local}
-        </Text>
-        <Text style={styles.info}>
-          <Text style={styles.label}>Horário:</Text> {feira.horarios.map(horario => `${horario.dia}: ${horario.horarioInicio} - ${horario.horarioFim}`).join('\n')}h
-        </Text>
-        <Text style={styles.info}>
-          <Text style={styles.label}>Vagas:</Text> {vagasOcupadas}/{feira.maxFeirantes} ocupadas
-        </Text>
+      <Text style={styles.label}>Horários:</Text>
+      {feira.horarios.length === 0 ? (
+        <Text style={styles.horarioVazio}>Nenhum horário cadastrado.</Text>
+      ) : (
+        feira.horarios.map((h) => (
+          <View key={h.id} style={styles.horarioBox}>
+            <Text style={styles.horarioTexto}>
+              🗓 {h.dia} | ⏰ {h.horarioInicio} - {h.horarioFim}
+            </Text>
+            <Text style={styles.horarioSub}>
+              Feirantes: {h.quantidadeFeirantes}/{h.maxFeirantes} | Fila: {h.quantidadeFilaDeEspera}
+            </Text>
+          </View>
+        ))
+      )}
 
-        <TouchableOpacity
-          style={styles.botao}
-          onPress={() => navigation.navigate('VerDetalhesFeira', { feira })}
-        >
-          <Text style={styles.botaoTexto}>Ver Detalhes</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+      <TouchableOpacity
+        style={styles.botao}
+        onPress={() => navigation.navigate('VerDetalhesFeira', { feira })}
+      >
+        <Text style={styles.botaoTexto}>Ver Detalhes</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -169,12 +174,35 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: 'bold',
     color: '#004AAD',
+    fontSize: 15,
+    marginTop: 8,
+  },
+  horarioBox: {
+    backgroundColor: '#E9F1FF',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 6,
+  },
+  horarioTexto: {
+    fontSize: 14,
+    color: '#004AAD',
+    fontWeight: '600',
+  },
+  horarioSub: {
+    fontSize: 13,
+    color: '#333',
+  },
+  horarioVazio: {
+    color: '#777',
+    fontStyle: 'italic',
+    fontSize: 13,
+    marginTop: 4,
   },
   botao: {
     backgroundColor: '#00AEEF',
     paddingVertical: 10,
     borderRadius: 6,
-    marginTop: 10,
+    marginTop: 12,
   },
   botaoTexto: {
     color: '#fff',

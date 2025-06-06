@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { API_URL } from '../../config/api';
 
 export default function VisualizarFilaEsperaScreen({ route }) {
-  const { feira } = route.params;
+  const { horario } = route.params;
   const [fila, setFila] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -26,10 +26,11 @@ export default function VisualizarFilaEsperaScreen({ route }) {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(
-        `${API_URL}/fila-espera/feira/${feira.id}`, 
+        `${API_URL}/fila-espera/horario/${horario.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-        });
+        }
+      );
       const res = response.data;
       if (res.success) {
         setFila(res.data);
@@ -46,15 +47,17 @@ export default function VisualizarFilaEsperaScreen({ route }) {
 
   useEffect(() => {
     buscarFila();
-  }, [feira]);
+  }, [horario]);
 
   const verDetalhes = (feiranteId, idFila) => {
     navigation.navigate('VerDetalhesFeirante', { feiranteId, idFila });
   };
 
+  const titulo = `Fila - ${horario.dia} (${horario.horarioInicio} às ${horario.horarioFim})`;
+
   return (
     <SafeAreaView style={styles.safe}>
-      <TopoNavegacao titulo={`Fila de Espera - ${feira.nome}`} />
+      <TopoNavegacao titulo={titulo} />
 
       {carregando && fila.length === 0 ? (
         <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 30 }} />
