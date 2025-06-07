@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -119,12 +120,17 @@ export default function AtualizarBancaScreen() {
 
     try {
       const token = await AsyncStorage.getItem('token');
+      const usuarioId = await AsyncStorage.getItem('usuarioId'); 
+
       const payload = {
         tipoProduto,
         produtos,
         horarioIds: horariosSelecionados,
+        feiranteId: usuarioId,
+        feiraId: feira.id,
       };
 
+      console.log(bancaId);
       const res = await axios.put(`${API_URL}/bancas/${bancaId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });

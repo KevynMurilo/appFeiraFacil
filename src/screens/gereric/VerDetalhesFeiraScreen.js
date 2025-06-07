@@ -42,18 +42,15 @@ export default function VerDetalhesFeiraScreen() {
         Alert.alert('Erro', resposta.data.message || 'Erro ao buscar feira atualizada.');
       }
     } catch (erro) {
-      console.error('Erro ao carregar feira:', erro);
       Alert.alert('Erro', 'Não foi possível atualizar os dados da feira.');
     } finally {
       setRefreshing(false);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      carregarFeiraAtualizada();
-    }, [feiraInicial.id])
-  );
+  useFocusEffect(useCallback(() => {
+    carregarFeiraAtualizada();
+  }, [feiraInicial.id]));
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -61,55 +58,49 @@ export default function VerDetalhesFeiraScreen() {
   };
 
   const confirmarExclusao = () => {
-    Alert.alert(
-      'Excluir Feira',
-      `Tem certeza que deseja excluir a feira "${feira.nome}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem('token');
-              const resposta = await axios.delete(`${API_URL}/feiras/${feira.id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
+    Alert.alert('Excluir Feira', `Tem certeza que deseja excluir a feira "${feira.nome}"?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem('token');
+            const resposta = await axios.delete(`${API_URL}/feiras/${feira.id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
 
-              if (resposta.data.success) {
-                Alert.alert('✅ Feira excluída com sucesso!');
-                navigation.goBack();
-              } else {
-                Alert.alert('❌ Erro', resposta.data.message);
-              }
-            } catch (erro) {
-              console.log(erro);
-              Alert.alert('❌ Erro ao excluir a feira');
+            if (resposta.data.success) {
+              Alert.alert('✅ Feira excluída com sucesso!');
+              navigation.goBack();
+            } else {
+              Alert.alert('❌ Erro', resposta.data.message);
             }
-          },
+          } catch (erro) {
+            Alert.alert('❌ Erro ao excluir a feira');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  const subirFeirantes = async () => {
+  const subirFeiranteDoHorario = async (idHorario) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const resposta = await axios.patch(
-        `${API_URL}/feiras/${feira.id}/subir-feirantes-da-fila`,
+        `${API_URL}/feiras/subir-fila/${idHorario}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (resposta.data.success) {
-        Alert.alert('✅ Feirantes movidos da fila com sucesso!');
-        setFeira(resposta.data.data);
+        Alert.alert('✅ Feirante ativado com sucesso!');
+        carregarFeiraAtualizada();
       } else {
         Alert.alert('❌ Erro', resposta.data.message);
       }
     } catch (erro) {
-      console.error(erro);
-      Alert.alert('❌ Erro ao subir feirantes da fila');
+      Alert.alert('❌ Erro ao subir feirante da fila');
     }
   };
 
@@ -139,6 +130,17 @@ export default function VerDetalhesFeiraScreen() {
               <Text style={styles.horarioInfo}>
                 {h.quantidadeFeirantes}/{h.maxFeirantes} ocupadas | Fila: {h.quantidadeFilaDeEspera}
               </Text>
+
+              {/* Mostra botão de subir feirante somente se admin, houver fila e vaga */}
+              {isAdmin && h.vagasDisponiveis > 0 && h.quantidadeFilaDeEspera > 0 && (
+                <TouchableOpacity
+                  style={styles.botaoSubirHorario}
+                  onPress={() => subirFeiranteDoHorario(h.id)}
+                >
+                  <Ionicons name="trending-up-outline" size={16} color="#fff" />
+                  <Text style={styles.subirTexto}>Subir da Fila</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ))
         )}
@@ -179,14 +181,6 @@ export default function VerDetalhesFeiraScreen() {
                   <Text style={styles.botaoTexto}>Excluir</Text>
                 </TouchableOpacity>
               </View>
-
-              <TouchableOpacity
-                style={[styles.botaoGrande, styles.botaoSubir]}
-                onPress={subirFeirantes}
-              >
-                <Ionicons name="trending-up-outline" size={20} color="#fff" />
-                <Text style={styles.botaoTexto}>Subir Feirantes da Fila</Text>
-              </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.botaoGrande, styles.botaoMapaBorda]}
@@ -239,7 +233,6 @@ const styles = StyleSheet.create({
   },
   botaoAtualizar: { backgroundColor: '#00AEEF' },
   botaoExcluir: { backgroundColor: '#FF4D4F' },
-  botaoSubir: { backgroundColor: '#004AAD' },
   botaoMapa: { backgroundColor: '#004AAD' },
   botaoMapaBorda: { backgroundColor: 'transparent', borderWidth: 2, borderColor: '#004AAD' },
   botaoGrande: {
@@ -263,5 +256,20 @@ const styles = StyleSheet.create({
   horarioInfo: {
     fontSize: 14,
     color: '#333',
+  },
+  botaoSubirHorario: {
+    marginTop: 6,
+    backgroundColor: '#004AAD',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+  subirTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginLeft: 6,
   },
 });

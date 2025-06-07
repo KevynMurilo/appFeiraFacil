@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import TopoNavegacao from '../../components/TopoNavegacao';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { API_URL } from '../../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,39 +24,31 @@ export default function VerBancaScreen() {
   const [banca, setBanca] = useState(null);
   const [feirante, setFeirante] = useState(null);
   const [feira, setFeira] = useState(null);
-  const [posicaoFila, setPosicaoFila] = useState(null);
-  const [totalFila, setTotalFila] = useState(null);
-  const [nomeFeiraFila, setNomeFeiraFila] = useState('');
+  const [posicoesFila, setPosicoesFila] = useState({});
   const [carregando, setCarregando] = useState(true);
-
-  const statusFeirante = feirante?.status;
-  const horariosVazios = !banca?.horarios || banca.horarios.length === 0;
 
   useEffect(() => {
     buscarBanca();
   }, []);
 
   useEffect(() => {
-    if (statusFeirante === 'NA_FILA_DE_ESPERA' && feira && feirante) {
-      buscarPosicaoNaFila(feira.id, feirante.id);
+    if (feira && feirante && banca?.horarios) {
+      buscarPosicoesFeirante();
     }
-  }, [feira, feirante]);
+  }, [feira, feirante, banca]);
 
   const buscarBanca = async () => {
     setCarregando(true);
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(`${API_URL}/bancas/${bancaId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const res = response.data;
 
       if (res.success && res.data) {
-        const bancaData = res.data.banca;
-        setBanca(bancaData);
+        setBanca(res.data.banca);
         setFeirante(res.data.feirante);
         setFeira(res.data.feira);
       } else {
@@ -70,23 +62,19 @@ export default function VerBancaScreen() {
     }
   };
 
-  const buscarPosicaoNaFila = async (feiraId, feiranteId) => {
+  const buscarPosicoesFeirante = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/fila-espera/minha-posicao`, {
-        params: { idFeira: feiraId, idFeirante: feiranteId },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await axios.get(`${API_URL}/fila-espera/posicoes-feirante`, {
+        params: { idFeirante: feirante.id },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (res.data?.success && res.data.data?.posicao != null) {
-        setPosicaoFila(res.data.data.posicao);
-        setTotalFila(res.data.data.totalNaFila);
-        setNomeFeiraFila(res.data.data.feira);
+      if (res.data?.success && res.data.data) {
+        setPosicoesFila(res.data.data);
       }
     } catch (error) {
-      console.error('Erro ao buscar posição na fila:', error);
+      console.error('Erro ao buscar posições da fila do feirante:', error);
     }
   };
 
@@ -108,13 +96,11 @@ export default function VerBancaScreen() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const res = response.data;
-
-      if (res.success) {
+      if (response.data.success) {
         Alert.alert('Sucesso', 'Banca removida com sucesso!');
         navigation.goBack();
       } else {
-        Alert.alert('Erro', res.message || 'Erro ao remover banca.');
+        Alert.alert('Erro', response.data.message || 'Erro ao remover banca.');
       }
     } catch (error) {
       console.error('Erro ao deletar banca:', error);
@@ -137,15 +123,6 @@ export default function VerBancaScreen() {
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Detalhes da Banca" />
       <ScrollView contentContainerStyle={styles.container}>
-
-        {horariosVazios && (
-          <View style={{ backgroundColor: '#FFF3CD', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#FFCC00', marginBottom: 20 }}>
-            <Text style={{ color: '#856404', fontWeight: 'bold', fontSize: 16, textAlign: 'center' }}>
-              Esta banca ainda não possui horários vinculados. Por favor, atualize os dados.
-            </Text>
-          </View>
-        )}
-
         <View style={styles.card}>
           <Text style={styles.secaoTitulo}>🫜 Tipo de Produto</Text>
           <View style={styles.secaoConteudo}>
@@ -163,36 +140,47 @@ export default function VerBancaScreen() {
             )}
           </View>
 
-          <Text style={styles.secaoTitulo}>🕒 Horários da Banca</Text>
-          <View style={styles.secaoConteudo}>
-            {banca.horarios?.length > 0 ? (
-              banca.horarios.map((h, idx) => (
-                <Text key={idx} style={styles.valorLista}>
-                  • {h.dia}: {h.horarioInicio} - {h.horarioFim}
-                </Text>
-              ))
-            ) : (
-              <Text style={styles.valor}>Nenhum horário vinculado</Text>
-            )}
-          </View>
+          <Text style={styles.secaoTitulo}>🕒 Horários</Text>
+          {banca.horarios.map((h, idx) => {
+            const posicao = posicoesFila[h.id];
+            const estaNaFila = posicao?.estaNaFila === true;
+            const qrCodeHorario = h.qrCode;
 
-          <Text style={styles.secaoTitulo}>📍 Feira Vinculada</Text>
+            return (
+              <View
+                key={idx}
+                style={[
+                  styles.secaoConteudo,
+                  {
+                    marginBottom: 12,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.valorLista}>• {h.dia}: {h.horarioInicio} - {h.horarioFim}</Text>
+                  {estaNaFila && (
+                    <Text style={{ color: '#c60', fontWeight: 'bold', marginTop: 6 }}>
+                      Você está na posição {posicao.posicao} de {posicao.totalNaFila} na fila deste horário.
+                    </Text>
+                  )}
+                </View>
+
+                {!estaNaFila && qrCodeHorario && (
+                  <TouchableOpacity onPress={() => navigation.navigate('VerQrCode', { qrCode: qrCodeHorario })}>
+                    <Ionicons name="qr-code-outline" size={24} color="#004AAD" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })}
+
+          <Text style={styles.secaoTitulo}>📍 Feira</Text>
           <View style={styles.secaoConteudo}>
             <Text style={styles.valor}>{feira.nome}</Text>
           </View>
-
-          <Text style={styles.secaoTitulo}>📋 Status do Feirante</Text>
-          <View style={styles.secaoConteudo}>
-            <Text style={[styles.valor, { fontWeight: 'bold', color: statusFeirante === 'ATIVO' ? 'green' : '#c90' }]}> {statusFeirante} </Text>
-          </View>
-
-          {posicaoFila !== null && (
-            <View style={[styles.secaoConteudo, { backgroundColor: '#FFF8E6', borderColor: '#f90' }]}>
-              <Text style={[styles.valor, { color: '#c60', fontWeight: 'bold' }]}>
-                Você está na posição {posicaoFila} de {totalFila} na fila da feira "{nomeFeiraFila}".
-              </Text>
-            </View>
-          )}
         </View>
 
         <TouchableOpacity style={styles.botaoQr} onPress={() => navigation.navigate('EditarBanca', { bancaId })}>
@@ -200,25 +188,10 @@ export default function VerBancaScreen() {
           <Text style={styles.botaoQrTexto}>Atualizar</Text>
         </TouchableOpacity>
 
-        {!horariosVazios && statusFeirante === 'ATIVO' && (
-          <TouchableOpacity style={styles.botaoQr} onPress={() => navigation.navigate('VerQrCode', { qrCode: banca.qrCode })}>
-            <MaterialCommunityIcons name="qrcode-scan" size={20} color="#004AAD" />
-            <Text style={styles.botaoQrTexto}>Ver QR Code da Banca</Text>
-          </TouchableOpacity>
-        )}
-
-        {!horariosVazios && (statusFeirante === 'AGUARDANDO_REVISÃO' || statusFeirante === 'INATIVO' || statusFeirante === 'SUBSTITUIDO_POR_FALTAS') && (
-          <TouchableOpacity style={styles.botaoJustificar} onPress={() => navigation.navigate('VerFaltas', { feiranteId: feirante.id })}>
-            <Ionicons name="document-text-outline" size={20} color="#f90" />
-            <Text style={styles.botaoJustificarTexto}>Ver Faltas</Text>
-          </TouchableOpacity>
-        )}
-
         <TouchableOpacity style={styles.botaoExcluir} onPress={confirmarRemocao}>
           <Ionicons name="trash-outline" size={20} color="#FF4D4D" />
           <Text style={styles.botaoExcluirTexto}>Excluir Banca</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -249,21 +222,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 12,
-    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#ddd',
   },
-  valor: {
-    fontSize: 15.5,
-    color: '#333',
-    lineHeight: 22,
-  },
-  valorLista: {
-    fontSize: 15.5,
-    color: '#333',
-    lineHeight: 24,
-    marginLeft: 4,
-  },
+  valor: { fontSize: 15.5, color: '#333', lineHeight: 22 },
+  valorLista: { fontSize: 15.5, color: '#333', lineHeight: 24 },
   botaoQr: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -278,23 +241,6 @@ const styles = StyleSheet.create({
   botaoQrTexto: {
     marginLeft: 8,
     color: '#004AAD',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  botaoJustificar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF8E6',
-    borderWidth: 1,
-    borderColor: '#f90',
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  botaoJustificarTexto: {
-    marginLeft: 8,
-    color: '#f90',
     fontWeight: 'bold',
     fontSize: 15,
   },

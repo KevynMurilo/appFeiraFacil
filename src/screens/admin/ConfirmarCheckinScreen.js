@@ -54,7 +54,7 @@ export default function ConfirmarCheckinScreen() {
   }, [qrCode]);
 
   const handleConfirmar = async () => {
-    if (!dados?.banca || !dados?.feirante) return;
+    if (!dados?.bancaId || !dados?.feiranteId) return;
 
     try {
       const token = await AsyncStorage.getItem('token');
@@ -63,8 +63,9 @@ export default function ConfirmarCheckinScreen() {
         null,
         {
           params: {
-            idBanca: dados.banca.id,
-            idFeirante: dados.feirante.id,
+            idBanca: dados.bancaId,
+            idFeirante: dados.feiranteId,
+            qrCode: qrCode,
           },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,42 +97,31 @@ export default function ConfirmarCheckinScreen() {
     );
   }
 
-  const { banca, feirante } = dados;
-
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Confirmar Check-in" />
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="person-circle-outline" size={24} color="#004AAD" />
-            <Text style={styles.cardTitulo}>Feirante</Text>
-          </View>
+        <HorarioResumo dia={dados?.dia} inicio={dados?.horarioInicio} fim={dados?.horarioFim} />
 
-          <Item label="Nome" valor={feirante.nome} />
-          <Item label="CPF" valor={feirante.cpf} />
-          <Item label="Telefone" valor={feirante.telefone} isLink tipo="telefone" />
-          <Item label="E-mail" valor={feirante.email} isLink tipo="email" />
-        </View>
+        <InfoCard icon={<Ionicons name="person-circle-outline" size={24} color="#004AAD" />} title="Feirante">
+          <Item label="Nome" valor={dados?.nomeFeirante} />
+          <Item label="CPF" valor={dados?.cpf} />
+          <Item label="Telefone" valor={dados?.telefone} isLink tipo="telefone" />
+          <Item label="E-mail" valor={dados?.email} isLink tipo="email" />
+        </InfoCard>
 
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <MaterialCommunityIcons name="storefront-outline" size={22} color="#004AAD" />
-            <Text style={styles.cardTitulo}>Banca</Text>
-          </View>
-
-          <Item label="Feira" valor={banca.nomeFeira} />
-          <Item label="Tipo de Produto" valor={banca.tipoProduto} />
-
+        <InfoCard icon={<MaterialCommunityIcons name="storefront-outline" size={22} color="#004AAD" />} title="Banca">
+          <Item label="Feira" valor={dados?.nomeFeira} />
+          <Item label="Tipo de Produto" valor={dados?.tipoProduto} />
           <Text style={styles.label}>Produtos</Text>
           <View style={styles.listaProdutos}>
-            {banca.produtos.map((prod, index) => (
+            {dados?.produtos?.map((prod, index) => (
               <View key={index} style={styles.produtoBadge}>
                 <Text style={styles.produtoTexto}>{prod}</Text>
               </View>
             ))}
           </View>
-        </View>
+        </InfoCard>
 
         <TouchableOpacity style={styles.botaoConfirmar} onPress={handleConfirmar}>
           <Ionicons name="checkmark-circle-outline" size={22} color="#fff" />
@@ -141,6 +131,25 @@ export default function ConfirmarCheckinScreen() {
     </SafeAreaView>
   );
 }
+
+const HorarioResumo = ({ dia, inicio, fim }) => (
+  <View style={styles.horarioResumoContainer}>
+    <Ionicons name="calendar-outline" size={18} color="#004AAD" style={{ marginRight: 6 }} />
+    <Text style={styles.horarioResumoTexto}>
+      {dia || '---'} • {inicio || '--:--'} às {fim || '--:--'}
+    </Text>
+  </View>
+);
+
+const InfoCard = ({ icon, title, children }) => (
+  <View style={styles.card}>
+    <View style={styles.cardHeader}>
+      {icon}
+      <Text style={styles.cardTitulo}>{title}</Text>
+    </View>
+    {children}
+  </View>
+);
 
 const Item = ({ label, valor, isLink, tipo }) => {
   const handlePress = () => {
@@ -160,7 +169,7 @@ const Item = ({ label, valor, isLink, tipo }) => {
               isLink && styles.linkTexto,
             ]}
           >
-            {valor}
+            {valor || '---'}
           </Text>
           {isLink && (
             <Ionicons
@@ -179,6 +188,21 @@ const Item = ({ label, valor, isLink, tipo }) => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingBottom: 30, flexGrow: 1 },
+  horarioResumoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#E6F0FF',
+    marginHorizontal: 20,
+    marginTop: 15,
+    borderRadius: 8,
+  },
+  horarioResumoTexto: {
+    fontSize: 16,
+    color: '#004AAD',
+    fontWeight: '600',
+  },
   card: {
     backgroundColor: '#F2F6FF',
     marginHorizontal: 20,
