@@ -9,7 +9,7 @@ export default {
       API_URL:
         process.env.ENVIRONMENT === 'prod'
           ? process.env.URL_BASE_PROD
-          : process.env.URL_BASE_DEV_HOME,
+          : process.env.URL_BASE_DEV_JOB,
     },
   },
 };

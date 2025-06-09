@@ -45,6 +45,7 @@ export default function AtualizarFeiraScreen() {
 
   const [horarios, setHorarios] = useState(
     feiraOriginal.horarios?.map((h) => ({
+      id: h.id,
       dia: h.dia,
       horarioInicio: h.horarioInicio,
       horarioFim: h.horarioFim,
@@ -117,6 +118,7 @@ export default function AtualizarFeiraScreen() {
           latitude: latitude.toString(),
           longitude: longitude.toString(),
           horarios: horarios.map((h) => ({
+            id: h.id, // <- importante para o backend
             dia: h.dia,
             horarioInicio: h.horarioInicio,
             horarioFim: h.horarioFim,
