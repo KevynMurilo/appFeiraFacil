@@ -21,11 +21,11 @@ export default function GerenciarBancasScreen() {
   const [feiras, setFeiras] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [faltasAtivas, setFaltasAtivas] = useState([]);
 
   const carregarFeiras = async () => {
     try {
       setCarregando(true);
-
       const usuarioId = await AsyncStorage.getItem('usuarioId');
       const token = await AsyncStorage.getItem('token');
       if (!usuarioId || !token) return;
@@ -33,6 +33,13 @@ export default function GerenciarBancasScreen() {
       const response = await axios.get(`${API_URL}/feiras/com-banca/${usuarioId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      const faltasResponse = await axios.get(`${API_URL}/faltas/feirante/${usuarioId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const faltas = faltasResponse.data.success ? faltasResponse.data.data : [];
+      setFaltasAtivas(faltas.filter(f => !f.statusJustificativa));
 
       const res = response.data;
       setFeiras(res.success && res.data ? res.data : []);
@@ -48,84 +55,56 @@ export default function GerenciarBancasScreen() {
   useFocusEffect(useCallback(() => { carregarFeiras(); }, []));
   const onRefresh = useCallback(() => { setRefreshing(true); carregarFeiras(); }, []);
 
-  const avisosStatus = {
-    INATIVO: {
-      cor: '#aaa',
-      icone: 'alert-circle-outline',
-      texto: 'Este feirante está inativo.',
-    },
-    SUBSTITUIDO_POR_FALTAS: {
-      cor: '#f44336',
-      icone: 'warning-outline',
-      texto: 'Este feirante foi substituído por faltas.',
-    },
-    AGUARDANDO_REVISÃO: {
-      cor: '#ff9800',
-      icone: 'time-outline',
-      texto: 'Justificativa aguardando revisão.',
-    },
-    BLOQUEADO: {
-      cor: '#d32f2f',
-      icone: 'close-circle-outline',
-      texto: 'Acesso bloqueado por irregularidades.',
-    },
-    NA_FILA_DE_ESPERA: {
-      cor: '#2196f3',
-      icone: 'ellipsis-horizontal-circle-outline',
-      texto: 'Você está na fila de espera desta feira.',
-    },
-  };
-
   const renderFeira = ({ feira, feirante }) => {
-    const banca = feirante?.bancas?.find((b) => b.nomeFeira === feira.nome);
-    const aviso = feirante?.status ? avisosStatus[feirante.status] : null;
+    const bancas = feirante?.bancas?.filter((b) => b.nomeFeira === feira.nome) || [];
 
     return (
       <View key={feira.id} style={styles.card}>
-        {aviso && (
-          <View style={[styles.avisoContainer, { backgroundColor: aviso.cor }]}>
-            <Ionicons name={aviso.icone} size={18} color="#fff" />
-            <Text style={styles.avisoTexto}>{aviso.texto}</Text>
-          </View>
-        )}
-
         <Text style={styles.nomeFeira}>{feira.nome}</Text>
-        <Text style={styles.local}>🗺️ {feira.local}</Text>
+        <Text style={styles.local}>🗽️ {feira.local}</Text>
 
-        {banca?.horarios?.length > 0 ? (
-          banca.horarios.map((h) => (
-            <View key={h.id} style={styles.horarioBox}>
-              <Text style={styles.horarioTexto}>
-                🗓 {h.dia} | ⏰ {h.horarioInicio} - {h.horarioFim}
-              </Text>
-              <Text style={styles.horarioSub}>
-                Feirantes: {h.quantidadeFeirantes}/{h.maxFeirantes} | Fila: {h.quantidadeFilaDeEspera}
-              </Text>
+        {bancas.length > 0 ? (
+          bancas.map((banca) => (
+            <View key={banca.id} style={styles.bancaBox}>
+              <Text style={styles.bancaTitulo}>🧺 Tipo: {banca.tipoProduto}</Text>
+              {banca.produtos?.length > 0 && (
+                <Text style={styles.info}>Produtos: {banca.produtos.join(', ')}</Text>
+              )}
+
+              {banca.horarios.map((h) => {
+                const temFalta = faltasAtivas.some(f => f.idHorario === h.id);
+
+                return (
+                  <View key={h.id} style={styles.horarioBox}>
+                    <Text style={styles.horarioTexto}>🗓 {h.dia} | ⏰ {h.horarioInicio} - {h.horarioFim}</Text>
+                    <Text style={styles.horarioSub}>
+                      Feirantes: {h.quantidadeFeirantes}/{h.maxFeirantes} | Fila: {h.quantidadeFilaDeEspera}
+                    </Text>
+                    {h.statusBanca === 'NA_FILA_DE_ESPERA' && (
+                      <Text style={styles.fila}>📋 Você está na fila deste horário</Text>
+                    )}
+                    {temFalta && (
+                      <Text style={styles.faltaAtiva}>⚠️ Falta pendente neste horário</Text>
+                    )}
+
+                    <TouchableOpacity
+                      style={styles.botaoInterno}
+                      onPress={() =>
+                        navigation.navigate('VerMinhaBanca', {
+                          bancaId: banca.id,
+                          horarioId: h.id,
+                        })
+                      }
+                    >
+                      <Text style={styles.botaoInternoTexto}>Ver Detalhes</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
             </View>
           ))
         ) : (
-          <Text style={styles.horarioAviso}>⚠️ Nenhum horário cadastrado.</Text>
-        )}
-
-        {feira.statusFila !== 'ATIVO' && feira.posicaoFila && (
-          <Text style={styles.fila}>📋 Posição na fila: {feira.posicaoFila}</Text>
-        )}
-
-        {banca && (
-          <>
-            <Text style={styles.bancaTitulo}>🧺 Minha Banca</Text>
-            <Text style={styles.info}>Tipo: {banca.tipoProduto}</Text>
-            {banca.produtos?.length > 0 && (
-              <Text style={styles.info}>Produtos: {banca.produtos.join(', ')}</Text>
-            )}
-
-            <TouchableOpacity
-              style={styles.botaoInterno}
-              onPress={() => navigation.navigate('VerMinhaBanca', { bancaId: banca.id })}
-            >
-              <Text style={styles.botaoInternoTexto}>Ver Detalhes</Text>
-            </TouchableOpacity>
-          </>
+          <Text style={styles.horarioAviso}>⚠️ Nenhuma banca cadastrada nesta feira.</Text>
         )}
       </View>
     );
@@ -192,34 +171,30 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     elevation: 2,
   },
-  avisoContainer: {
-    padding: 8,
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  avisoTexto: {
-    color: '#fff',
-    marginLeft: 8,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
   nomeFeira: { fontSize: 18, fontWeight: 'bold', color: '#004AAD' },
   local: { fontSize: 14, color: '#333', marginBottom: 6 },
   info: { fontSize: 14, color: '#444', marginBottom: 3 },
-  fila: { fontSize: 14, marginTop: 8, color: '#f90' },
+  fila: { fontSize: 14, marginTop: 4, color: '#f90' },
+  faltaAtiva: { fontSize: 13, marginTop: 4, color: '#FFA500', fontWeight: 'bold' },
   bancaTitulo: {
     marginTop: 10,
     fontSize: 15,
     fontWeight: 'bold',
     color: '#004AAD',
   },
+  bancaBox: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#dce6ff',
+  },
   botaoInterno: {
     backgroundColor: '#00AEEF',
     paddingVertical: 10,
     borderRadius: 6,
-    marginTop: 12,
+    marginTop: 8,
   },
   botaoInternoTexto: {
     color: '#fff',

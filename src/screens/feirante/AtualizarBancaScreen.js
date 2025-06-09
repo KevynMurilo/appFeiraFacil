@@ -6,11 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Platform,
   SafeAreaView,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -60,7 +58,6 @@ export default function AtualizarBancaScreen() {
         setFeira(feiraVinculada);
         const horarioIds = banca.horarios?.map(h => h.id) || [];
         setHorariosSelecionados(horarioIds);
-
         await carregarHorarios(feiraVinculada.id);
       }
     } catch (err) {
@@ -78,7 +75,6 @@ export default function AtualizarBancaScreen() {
       const res = await axios.get(`${API_URL}/horarios/feira/${feiraId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (res.data.success) {
         setHorariosDisponiveis(res.data.data);
       }
@@ -89,8 +85,9 @@ export default function AtualizarBancaScreen() {
   };
 
   const adicionarProduto = () => {
-    if (produtoAtual.trim() !== '') {
-      setProdutos([...produtos, produtoAtual.trim()]);
+    const produto = produtoAtual.trim();
+    if (produto !== '' && !produtos.includes(produto)) {
+      setProdutos([...produtos, produto]);
       setProdutoAtual('');
     }
   };
@@ -120,7 +117,7 @@ export default function AtualizarBancaScreen() {
 
     try {
       const token = await AsyncStorage.getItem('token');
-      const usuarioId = await AsyncStorage.getItem('usuarioId'); 
+      const usuarioId = await AsyncStorage.getItem('usuarioId');
 
       const payload = {
         tipoProduto,
@@ -130,7 +127,6 @@ export default function AtualizarBancaScreen() {
         feiraId: feira.id,
       };
 
-      console.log(bancaId);
       const res = await axios.put(`${API_URL}/bancas/${bancaId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -174,6 +170,11 @@ export default function AtualizarBancaScreen() {
         </View>
 
         <Text style={styles.label}>🕒 Selecione os horários</Text>
+        {horariosDisponiveis.length === 0 && (
+          <Text style={{ color: '#666', marginBottom: 10 }}>
+            Nenhum horário disponível para essa feira.
+          </Text>
+        )}
         {horariosDisponiveis.map((h) => (
           <TouchableOpacity
             key={h.id}

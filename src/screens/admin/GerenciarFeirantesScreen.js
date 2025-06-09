@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  TextInput,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { API_URL } from '../../config/api';
@@ -22,23 +23,16 @@ export default function GerenciarFeirantesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [statusSelecionado, setStatusSelecionado] = useState(null);
+  const [cpfBusca, setCpfBusca] = useState('');
 
   const statusLabel = {
     ATIVO: 'Ativo',
-    INATIVO: 'Inativo',
-    SUBSTITUIDO_POR_FALTAS: 'Substituído',
-    AGUARDANDO_REVISÃO: 'Aguardando revisão',
     BLOQUEADO: 'Bloqueado',
-    NA_FILA_DE_ESPERA: 'Fila de espera',
   };
 
   const statusCor = {
     ATIVO: '#388E3C',
-    INATIVO: '#757575',
-    SUBSTITUIDO_POR_FALTAS: '#D32F2F',
-    AGUARDANDO_REVISÃO: '#F9A825',
     BLOQUEADO: '#C62828',
-    NA_FILA_DE_ESPERA: '#1976D2',
   };
 
   const carregarFeirantes = async (status = null) => {
@@ -66,6 +60,30 @@ export default function GerenciarFeirantesScreen() {
     }
   };
 
+  const buscarPorCpf = async () => {
+    const cpfLimpo = cpfBusca.replace(/\D/g, '');
+    if (!cpfLimpo) return;
+
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/feirantes/buscar?cpf=${cpfLimpo}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        setFeirantes([res.data.data]);
+      } else {
+        Alert.alert('Erro', res.data.message || 'Feirante não encontrado.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Erro', 'CPF não encontrado.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
@@ -81,28 +99,26 @@ export default function GerenciarFeirantesScreen() {
   const renderFeirante = (feirante) => (
     <View key={feirante.id} style={styles.card}>
       <View style={styles.headerCard}>
-        <Ionicons name="person-circle-outline" size={30} color="#004AAD" />
+        <Ionicons name="person-circle-outline" size={40} color="#004AAD" />
         <View style={{ flex: 1 }}>
           <Text style={styles.nome}>{feirante.nome}</Text>
           <Text style={styles.email}>{feirante.email}</Text>
         </View>
-        <View
-          style={[
-            styles.statusTag,
-            { backgroundColor: statusCor[feirante.status] || '#999' },
-          ]}
-        >
-          <Text style={styles.statusTexto}>
-            {statusLabel[feirante.status] || feirante.status}
-          </Text>
-        </View>
+        {feirante.status && (
+          <View style={[styles.statusTag, { backgroundColor: statusCor[feirante.status] || '#999' }]}>
+            <Text style={styles.statusTexto}>
+              {statusLabel[feirante.status] || feirante.status}
+            </Text>
+          </View>
+        )}
       </View>
 
       <TouchableOpacity
-        style={styles.botaoInterno}
+        style={styles.botaoVer}
         onPress={() => navigation.navigate('VerDetalhesFeirante', { feiranteId: feirante.id })}
       >
-        <Text style={styles.botaoInternoTexto}>Ver Detalhes</Text>
+        <Ionicons name="eye-outline" size={16} color="#fff" />
+        <Text style={styles.botaoTexto}>Ver Detalhes</Text>
       </TouchableOpacity>
     </View>
   );
@@ -110,22 +126,15 @@ export default function GerenciarFeirantesScreen() {
   const renderFiltros = () => (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtroContainer}>
       <TouchableOpacity
-        style={[
-          styles.filtroBotao,
-          statusSelecionado === null && styles.filtroAtivo,
-        ]}
+        style={[styles.filtroBotao, statusSelecionado === null && styles.filtroAtivo]}
         onPress={() => setStatusSelecionado(null)}
       >
         <Text style={styles.filtroTexto}>Todos</Text>
       </TouchableOpacity>
-
       {Object.entries(statusLabel).map(([status, label]) => (
         <TouchableOpacity
           key={status}
-          style={[
-            styles.filtroBotao,
-            statusSelecionado === status && styles.filtroAtivo,
-          ]}
+          style={[styles.filtroBotao, statusSelecionado === status && styles.filtroAtivo]}
           onPress={() => setStatusSelecionado(status)}
         >
           <Text style={styles.filtroTexto}>{label}</Text>
@@ -136,6 +145,20 @@ export default function GerenciarFeirantesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <View style={styles.barraBusca}>
+        <TextInput
+          style={styles.input}
+          placeholder="Buscar por CPF"
+          value={cpfBusca}
+          onChangeText={setCpfBusca}
+          keyboardType="numeric"
+          placeholderTextColor="#888"
+        />
+        <TouchableOpacity style={styles.botaoBuscar} onPress={buscarPorCpf}>
+          <Ionicons name="search" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 40 }} />
       ) : (
@@ -146,7 +169,6 @@ export default function GerenciarFeirantesScreen() {
           }
         >
           {renderFiltros()}
-
           {feirantes.length > 0 ? (
             feirantes.map(renderFeirante)
           ) : (
@@ -165,28 +187,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  barraBusca: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  input: {
+    flex: 1,
+    height: 42,
+    borderColor: '#004AAD',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    color: '#000',
+  },
+  botaoBuscar: {
+    backgroundColor: '#004AAD',
+    padding: 10,
+    borderRadius: 10,
+  },
   container: {
     paddingHorizontal: 20,
     paddingBottom: 30,
-    marginTop: 15,
-    backgroundColor: '#fff',
+    marginTop: 10,
   },
   card: {
     backgroundColor: '#F2F6FF',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 15,
-    width: '100%',
     elevation: 2,
   },
   headerCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
     gap: 10,
+    marginBottom: 10,
   },
   nome: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#004AAD',
   },
@@ -197,29 +239,31 @@ const styles = StyleSheet.create({
   statusTag: {
     paddingVertical: 4,
     paddingHorizontal: 10,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
+    borderRadius: 20,
   },
   statusTexto: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 12,
   },
-  botaoInterno: {
+  botaoVer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#00AEEF',
     paddingVertical: 10,
     borderRadius: 6,
-    marginTop: 8,
+    marginTop: 10,
+    gap: 6,
   },
-  botaoInternoTexto: {
+  botaoTexto: {
     color: '#fff',
     fontWeight: 'bold',
-    textAlign: 'center',
   },
   filtroContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
-    marginTop: 5,
+    marginTop: 20,
+    marginBottom: 10,
   },
   filtroBotao: {
     paddingVertical: 6,

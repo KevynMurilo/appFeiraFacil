@@ -81,16 +81,8 @@ export default function FilaDeEsperaScreen() {
               onPress={() => abrirModalHorarios(feira)}
             >
               <Text style={styles.nome}>{feira.nome}</Text>
-              <Text style={styles.info}><Text style={styles.label}>LOCAL:</Text> {feira.local}</Text>
-              <Text style={styles.info}>
-                <Text style={styles.label}>HORÁRIOS:</Text> {feira.horarios?.length || 0}
-              </Text>
-              <Text style={styles.info}>
-                <Text style={styles.label}>FEIRANTES:</Text> {feira.quantidadeFeirantes}/{feira.maxFeirantes}
-              </Text>
-              <Text style={styles.info}>
-                <Text style={styles.label}>FILA TOTAL:</Text> {feira.quantidadeFilaDeEspera}
-              </Text>
+              <Text style={styles.info}><Text style={styles.label}>Local:</Text> {feira.local}</Text>
+              <Text style={styles.info}><Text style={styles.label}>Horários disponíveis:</Text> {feira.horarios?.length || 0}</Text>
             </TouchableOpacity>
           ))
         )}
@@ -119,7 +111,10 @@ export default function FilaDeEsperaScreen() {
                   onPress={() => abrirFila(h)}
                 >
                   <Text style={styles.botaoTexto}>
-                    {h.dia} - {h.horarioInicio} às {h.horarioFim} | Fila: {h.quantidadeFilaDeEspera ?? 0}
+                    {h.dia} - {h.horarioInicio} às {h.horarioFim}
+                  </Text>
+                  <Text style={styles.botaoSubtexto}>
+                    Ativos: {h.quantidadeFeirantes ?? 0} / {h.maxFeirantes ?? 0} • Vagas: {h.vagasDisponiveis ?? 0} • Fila: {h.quantidadeFilaDeEspera ?? 0}
                   </Text>
                 </Pressable>
               ))
@@ -210,6 +205,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  botaoSubtexto: {
+    color: '#fff',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 2,
   },
   cancelar: {
     marginTop: 20,

@@ -19,23 +19,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function VerBancaScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { bancaId } = route.params;
+  const { bancaId, horarioId } = route.params;
 
   const [banca, setBanca] = useState(null);
   const [feirante, setFeirante] = useState(null);
   const [feira, setFeira] = useState(null);
-  const [posicoesFila, setPosicoesFila] = useState({});
+  const [posicaoFila, setPosicaoFila] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [horarioSelecionado, setHorarioSelecionado] = useState(null);
+  const [faltas, setFaltas] = useState([]);
 
   useEffect(() => {
     buscarBanca();
   }, []);
 
   useEffect(() => {
-    if (feira && feirante && banca?.horarios) {
-      buscarPosicoesFeirante();
+    if (feira && feirante && horarioSelecionado) {
+      buscarPosicaoFeirante(horarioSelecionado.id);
+      buscarFaltasDoFeirante(feirante.id);
     }
-  }, [feira, feirante, banca]);
+  }, [feira, feirante, horarioSelecionado]);
 
   const buscarBanca = async () => {
     setCarregando(true);
@@ -51,6 +54,9 @@ export default function VerBancaScreen() {
         setBanca(res.data.banca);
         setFeirante(res.data.feirante);
         setFeira(res.data.feira);
+
+        const horario = res.data.banca.horarios?.find(h => h.id === horarioId);
+        setHorarioSelecionado(horario || null);
       } else {
         Alert.alert('Erro', res.message || 'Erro ao buscar banca.');
       }
@@ -62,19 +68,34 @@ export default function VerBancaScreen() {
     }
   };
 
-  const buscarPosicoesFeirante = async () => {
+  const buscarPosicaoFeirante = async (idHorario) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/fila-espera/posicoes-feirante`, {
-        params: { idFeirante: feirante.id },
+      const res = await axios.get(`${API_URL}/fila-espera/minha-posicao`, {
+        params: { idFeirante: feirante.id, idHorario },
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (res.data?.success && res.data.data) {
-        setPosicoesFila(res.data.data);
+        setPosicaoFila(res.data.data);
       }
     } catch (error) {
-      console.error('Erro ao buscar posições da fila do feirante:', error);
+      console.error('Erro ao buscar posição da fila do feirante:', error);
+    }
+  };
+
+  const buscarFaltasDoFeirante = async (idFeirante) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/faltas/feirante/${idFeirante}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data?.success && res.data.data) {
+        setFaltas(res.data.data);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar faltas do feirante:', err);
     }
   };
 
@@ -140,42 +161,33 @@ export default function VerBancaScreen() {
             )}
           </View>
 
-          <Text style={styles.secaoTitulo}>🕒 Horários</Text>
-          {banca.horarios.map((h, idx) => {
-            const posicao = posicoesFila[h.id];
-            const estaNaFila = posicao?.estaNaFila === true;
-            const qrCodeHorario = h.qrCode;
-
-            return (
-              <View
-                key={idx}
-                style={[
-                  styles.secaoConteudo,
-                  {
-                    marginBottom: 12,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  },
-                ]}
-              >
+          {horarioSelecionado && (
+            <>
+              <Text style={styles.secaoTitulo}>🕒 Horário</Text>
+              <View style={[styles.secaoConteudo, {
+                marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'
+              }]}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.valorLista}>• {h.dia}: {h.horarioInicio} - {h.horarioFim}</Text>
-                  {estaNaFila && (
+                  <Text style={styles.valorLista}>
+                    • {horarioSelecionado.dia}: {horarioSelecionado.horarioInicio} - {horarioSelecionado.horarioFim}
+                  </Text>
+                  {posicaoFila?.estaNaFila && (
                     <Text style={{ color: '#c60', fontWeight: 'bold', marginTop: 6 }}>
-                      Você está na posição {posicao.posicao} de {posicao.totalNaFila} na fila deste horário.
+                      Você está na posição {posicaoFila.posicao} de {posicaoFila.totalNaFila} na fila deste horário.
                     </Text>
                   )}
                 </View>
 
-                {!estaNaFila && qrCodeHorario && (
-                  <TouchableOpacity onPress={() => navigation.navigate('VerQrCode', { qrCode: qrCodeHorario })}>
-                    <Ionicons name="qr-code-outline" size={24} color="#004AAD" />
+                {!posicaoFila?.estaNaFila && horarioSelecionado.qrCode && (
+                  <TouchableOpacity onPress={() =>
+                    navigation.navigate('VerQrCode', { qrCode: horarioSelecionado.qrCode })
+                  }>
+                    <Ionicons name="qr-code-outline" size={28} color="#004AAD" />
                   </TouchableOpacity>
                 )}
               </View>
-            );
-          })}
+            </>
+          )}
 
           <Text style={styles.secaoTitulo}>📍 Feira</Text>
           <View style={styles.secaoConteudo}>
@@ -183,7 +195,20 @@ export default function VerBancaScreen() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.botaoQr} onPress={() => navigation.navigate('EditarBanca', { bancaId })}>
+        {faltas.length > 0 && (
+          <TouchableOpacity
+            style={[styles.botaoQr, { backgroundColor: '#FFF4E6', borderColor: '#FFA500' }]}
+            onPress={() => navigation.navigate('VerFaltas', { feiranteId: feirante.id })}
+          >
+            <Ionicons name="list-circle-outline" size={20} color="#FFA500" />
+            <Text style={[styles.botaoQrTexto, { color: '#FFA500' }]}>Ver Todas as Faltas</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={styles.botaoQr}
+          onPress={() => navigation.navigate('EditarBanca', { bancaId })}
+        >
           <Ionicons name="create-outline" size={20} color="#004AAD" />
           <Text style={styles.botaoQrTexto}>Atualizar</Text>
         </TouchableOpacity>
@@ -206,10 +231,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginBottom: 30,
     elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 4 },
   },
   secaoTitulo: {
     fontSize: 16,

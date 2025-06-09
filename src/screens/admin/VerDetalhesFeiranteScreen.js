@@ -12,10 +12,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import {
-  MaterialCommunityIcons,
-  Ionicons,
-} from '@expo/vector-icons';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -60,31 +57,8 @@ export default function VerDetalhesFeiranteScreen() {
     await buscarFeirante();
   };
 
-  if (carregando) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 40 }} />
-      </SafeAreaView>
-    );
-  }
-
-  if (!feirante) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <Text style={styles.erro}>Erro ao carregar os dados do feirante.</Text>
-      </SafeAreaView>
-    );
-  }
-
-  const bancasPorFeira = feirante.bancas?.reduce((map, banca) => {
-    const nome = banca.nomeFeira || 'Feira não identificada';
-    if (!map[nome]) map[nome] = [];
-    map[nome].push(banca);
-    return map;
-  }, {});
-
   const statusLabel = {
-    ATIVO: 'Ativo na feira',
+    ATIVO: 'Ativo',
     INATIVO: 'Inativo',
     SUBSTITUIDO_POR_FALTAS: 'Substituído por faltas',
     AGUARDANDO_REVISÃO: 'Aguardando revisão',
@@ -112,12 +86,7 @@ export default function VerDetalhesFeiranteScreen() {
       <TouchableOpacity disabled={!isLink} onPress={handlePress} activeOpacity={0.7}>
         <Text style={styles.label}>{label}</Text>
         <View style={styles.linkContainer}>
-          <Text
-            style={[
-              styles.valor,
-              isLink && styles.linkTexto,
-            ]}
-          >
+          <Text style={[styles.valor, isLink && styles.linkTexto]}>
             {valor}
           </Text>
           {isLink && (
@@ -132,6 +101,29 @@ export default function VerDetalhesFeiranteScreen() {
       </TouchableOpacity>
     );
   };
+
+  if (carregando) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ActivityIndicator size="large" color="#004AAD" style={{ marginTop: 40 }} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!feirante) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text style={styles.erro}>Erro ao carregar os dados do feirante.</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const bancasPorFeira = feirante.bancas?.reduce((map, banca) => {
+    const nome = banca.nomeFeira || 'Feira não identificada';
+    if (!map[nome]) map[nome] = [];
+    map[nome].push(banca);
+    return map;
+  }, {});
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -185,6 +177,18 @@ export default function VerDetalhesFeiranteScreen() {
                       </View>
                     ))}
                   </View>
+
+                  <Text style={styles.label}>Horários</Text>
+                  {banca.horarios?.map((h, k) => (
+                    <View key={k} style={styles.horarioBox}>
+                      <Text style={styles.valor}>
+                        {h.dia} • {h.horarioInicio} às {h.horarioFim}
+                      </Text>
+                      <Text style={[styles.valor, { fontWeight: 'bold', color: statusCor[h.statusBanca] || '#333' }]}>
+                        Status: {statusLabel[h.statusBanca] || h.statusBanca}
+                      </Text>
+                    </View>
+                  ))}
 
                   {i < bancas.length - 1 && <View style={styles.divider} />}
                 </View>
@@ -256,6 +260,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   bancaContainer: { marginBottom: 15 },
+  horarioBox: {
+    backgroundColor: '#E3EFFF',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
   divider: {
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',

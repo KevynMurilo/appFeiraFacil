@@ -13,14 +13,14 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import TopoNavegacao from '../../components/TopoNavegacao';
 import { API_URL } from '../../config/api';
 
 export default function SubstituirFeiranteScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { feiranteId, feiraId } = route.params;
+  const { feiranteId, horarioId } = route.params;
 
   const [feirante, setFeirante] = useState(null);
   const [carregando, setCarregando] = useState(true);
@@ -30,7 +30,7 @@ export default function SubstituirFeiranteScreen() {
     try {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
-        `${API_URL}/fila-espera/proximo-ativo?idFeira=${feiraId}`,
+        `${API_URL}/fila-espera/proximo-ativo?idHorario=${horarioId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -39,7 +39,7 @@ export default function SubstituirFeiranteScreen() {
       if (res.data.success) {
         setFeirante(res.data.data);
       } else {
-        setFeirante(null); 
+        setFeirante(null);
       }
     } catch (error) {
       console.warn('Feirante ativo não encontrado ou erro de rede:', error?.response?.data || error.message);
@@ -62,7 +62,7 @@ export default function SubstituirFeiranteScreen() {
             try {
               const token = await AsyncStorage.getItem('token');
               const response = await axios.post(
-                `${API_URL}/fila-espera/substituir?idFeira=${feiraId}&idFeiranteInativo=${feiranteId}`,
+                `${API_URL}/fila-espera/substituir?idHorario=${horarioId}&idFeiranteInativo=${feiranteId}`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -119,13 +119,6 @@ export default function SubstituirFeiranteScreen() {
     );
   }
 
-  const bancasPorFeira = feirante.bancas?.reduce((map, banca) => {
-    const nome = banca.nomeFeira || 'Feira não identificada';
-    if (!map[nome]) map[nome] = [];
-    map[nome].push(banca);
-    return map;
-  }, {});
-
   return (
     <SafeAreaView style={styles.safe}>
       <TopoNavegacao titulo="Substituir Feirante" />
@@ -142,54 +135,26 @@ export default function SubstituirFeiranteScreen() {
           </View>
 
           <Text style={styles.label}>Nome</Text>
-          <Text style={styles.valor}>{feirante.nome}</Text>
-
-          <Text style={styles.label}>CPF</Text>
-          <Text style={styles.valor}>{feirante.cpf}</Text>
+          <Text style={styles.valor}>{feirante.nomeFeirante}</Text>
 
           <Text style={styles.label}>Telefone</Text>
-          <Text style={styles.valor}>{feirante.telefone}</Text>
+          <Text style={styles.valor}>{feirante.telefoneFeirante}</Text>
 
           <Text style={styles.label}>Status</Text>
-          <Text style={styles.valor}>{feirante.status}</Text>
+          <Text style={styles.valor}>{feirante.status || 'EM_FILA'}</Text>
 
-          <Text style={styles.label}>Data de Cadastro</Text>
+          <Text style={styles.label}>Descrição do Horário</Text>
+          <Text style={styles.valor}>{feirante.descricaoHorario}</Text>
+
+          <Text style={styles.label}>Data de Entrada na Fila</Text>
           <Text style={styles.valor}>
-            {new Date(feirante.dataCadastro).toLocaleDateString('pt-BR')}
+            {new Date(feirante.dataCriacao).toLocaleDateString('pt-BR')}
           </Text>
 
           <TouchableOpacity style={styles.botaoSubstituir} onPress={substituirFeirante}>
             <Text style={styles.botaoTexto}>Substituir por Próximo da Fila</Text>
           </TouchableOpacity>
         </View>
-
-        {bancasPorFeira &&
-          Object.entries(bancasPorFeira).map(([feira, bancas], idx) => (
-            <View key={idx} style={styles.card}>
-              <View style={styles.cardHeader}>
-                <MaterialCommunityIcons name="storefront-outline" size={22} color="#004AAD" />
-                <Text style={styles.cardTitulo}>{feira}</Text>
-              </View>
-
-              {bancas.map((banca, i) => (
-                <View key={i} style={styles.bancaContainer}>
-                  <Text style={styles.label}>Tipo de Produto</Text>
-                  <Text style={styles.valor}>{banca.tipoProduto}</Text>
-
-                  <Text style={styles.label}>Produtos</Text>
-                  <View style={styles.listaProdutos}>
-                    {banca.produtos?.map((prod, j) => (
-                      <View key={j} style={styles.produtoBadge}>
-                        <Text style={styles.produtoTexto}>{prod}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {i < bancas.length - 1 && <View style={styles.divider} />}
-                </View>
-              ))}
-            </View>
-          ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -226,29 +191,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     marginTop: 2,
-  },
-  listaProdutos: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-    gap: 8,
-  },
-  produtoBadge: {
-    backgroundColor: '#00AEEF',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  produtoTexto: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  bancaContainer: { marginBottom: 15 },
-  divider: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginTop: 15,
   },
   erro: {
     textAlign: 'center',

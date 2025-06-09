@@ -21,7 +21,7 @@ import { API_URL } from '../../config/api';
 export default function FeirantesComFaltasScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { feiraId } = route.params;
+  const { horarioId } = route.params;
 
   const [feirantes, setFeirantes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function FeirantesComFaltasScreen() {
       setLoading(true);
       const token = await AsyncStorage.getItem('token');
 
-      let url = `${API_URL}/faltas/com-faltas/${feiraId}`;
+      let url = `${API_URL}/faltas/com-faltas/horario/${horarioId}`;
       const params = [];
 
       if (statusSelecionado) params.push(`status=${statusSelecionado}`);
@@ -81,7 +81,7 @@ export default function FeirantesComFaltasScreen() {
   const navegarParaProximoDaFila = (feiranteId) => {
     navigation.navigate('SubstituirFeirante', {
       feiranteId,
-      feiraId,
+      horarioId,
     });
   };
 
@@ -190,28 +190,11 @@ export default function FeirantesComFaltasScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    padding: 20,
-  },
-  filtroContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 10,
-  },
-  labelFiltro: {
-    fontWeight: 'bold',
-    marginTop: 12,
-    marginBottom: 4,
-    color: '#004AAD',
-  },
-  filtroStatusRow: {
-    flexDirection: 'row',
-    marginBottom: 10,
-    marginTop: 4,
-  },
+  safe: { flex: 1, backgroundColor: '#fff' },
+  container: { padding: 20 },
+  filtroContainer: { paddingHorizontal: 20, paddingBottom: 10 },
+  labelFiltro: { fontWeight: 'bold', marginTop: 12, marginBottom: 4, color: '#004AAD' },
+  filtroStatusRow: { flexDirection: 'row', marginBottom: 10, marginTop: 4 },
   statusBotao: {
     backgroundColor: '#E0E7FF',
     paddingVertical: 6,
@@ -219,17 +202,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
   },
-  statusBotaoAtivo: {
-    backgroundColor: '#004AAD',
-  },
-  statusBotaoTexto: {
-    color: '#004AAD',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  statusBotaoTextoAtivo: {
-    color: '#fff',
-  },
+  statusBotaoAtivo: { backgroundColor: '#004AAD' },
+  statusBotaoTexto: { color: '#004AAD', fontWeight: 'bold', fontSize: 13 },
+  statusBotaoTextoAtivo: { color: '#fff' },
   input: {
     backgroundColor: '#EEE',
     borderRadius: 6,
@@ -255,36 +230,12 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     elevation: 2,
   },
-  nome: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#004AAD',
-  },
-  cpf: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 5,
-  },
-  faltas: {
-    fontSize: 14,
-    color: '#000',
-    marginTop: 4,
-  },
-  faltasRecusadas: {
-    fontSize: 14,
-    color: '#C62828',
-    marginTop: 2,
-  },
-  faltasAceitas: {
-    fontSize: 14,
-    color: '#2E7D32',
-    marginTop: 2,
-  },
-  faltasPendentes: {
-    fontSize: 14,
-    color: '#FFA000',
-    marginTop: 2,
-  },
+  nome: { fontSize: 18, fontWeight: 'bold', color: '#004AAD' },
+  cpf: { fontSize: 14, color: '#555', marginTop: 5 },
+  faltas: { fontSize: 14, color: '#000', marginTop: 4 },
+  faltasRecusadas: { fontSize: 14, color: '#C62828', marginTop: 2 },
+  faltasAceitas: { fontSize: 14, color: '#2E7D32', marginTop: 2 },
+  faltasPendentes: { fontSize: 14, color: '#FFA000', marginTop: 2 },
   botao: {
     backgroundColor: '#004AAD',
     paddingVertical: 8,
