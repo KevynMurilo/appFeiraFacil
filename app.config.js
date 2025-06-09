@@ -1,15 +1,21 @@
 import 'dotenv/config';
 
-export default {
-  expo: {
-    name: 'AppFeiraFacil',
+export default ({ config }) => {
+  const environment = process.env.ENVIRONMENT || 'dev';
+  const apiUrl =
+    environment === 'prod'
+      ? process.env.URL_BASE_PROD
+      : process.env.URL_BASE_DEV_JOB || 'http://10.1.59.59/api';
+
+  return {
+    ...config,
+    name: 'FeiraFacil',
     slug: 'appfeirafacil',
-    version: '1.0.0',
     extra: {
-      API_URL:
-        process.env.ENVIRONMENT === 'prod'
-          ? process.env.URL_BASE_PROD
-          : process.env.URL_BASE_DEV_JOB,
+      API_URL: apiUrl,
+      eas: {
+        projectId: '6fe95fd5-b01b-4ce1-acea-8447f570ec64',
+      },
     },
-  },
+  };
 };

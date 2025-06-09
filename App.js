@@ -27,10 +27,10 @@ import SubstituirFeiranteScreen from './src/screens/admin/SubstituirFeiranteScre
 import VerDetalhesFeiraScreen from './src/screens/gereric/VerDetalhesFeiraScreen';
 import CadastrarBancaScreen from './src/screens/feirante/CadastroBancaScreen';
 import JustificarFaltaScreen from './src/screens/feirante/JustificarFaltaScreen';
-import SelecionarFeiraFaltasScreen from './src/screens/admin/SelecionarFeiraFaltasScreen';
 import VerFaltasScreen from './src/screens/feirante/VerFaltasScreen';
 import EditarPerfilScreen from './src/screens/feirante/EditarPerfilScreen';
 import AtualizarBancaScreen from './src/screens/feirante/AtualizarBancaScreen';
+import VerDetalhesByIdFeiranteAndBancaScreen from './src/screens/admin/VerDetalhesByIdFeiranteAndBancaScreen';
 
 const Stack = createStackNavigator();
 
@@ -76,6 +76,7 @@ export default function App() {
           {/* Admin */}
           <Stack.Screen name="AdminDrawer" component={AdminDrawer} />
           <Stack.Screen name="VerDetalhesFeirante" component={VerDetalhesFeiranteScreen} />
+          <Stack.Screen name="VerDetalhesByIdFeiranteAndBanca" component={VerDetalhesByIdFeiranteAndBancaScreen} />
           <Stack.Screen name="VerDetalhesFeira" component={VerDetalhesFeiraScreen} />
           <Stack.Screen name="CadastrarFeira" component={CadastrarFeiraScreen} />
           <Stack.Screen name="AtualizarFeira" component={AtualizarFeiraScreen} />

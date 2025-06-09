@@ -11,8 +11,6 @@ import {
   TextInput,
   Keyboard,
   TouchableWithoutFeedback,
-  Modal,
-  Pressable,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -30,16 +28,12 @@ export default function FeirantesComFaltasScreen() {
   const [statusSelecionado, setStatusSelecionado] = useState('');
   const [mes, setMes] = useState('');
   const [ano, setAno] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [feiranteSelecionado, setFeiranteSelecionado] = useState(null);
-  const [acaoSelecionada, setAcaoSelecionada] = useState('');
 
   const carregarFeirantesComFaltas = async () => {
     if (mes && (isNaN(mes) || mes < 1 || mes > 12)) {
       Alert.alert('Erro', 'Informe um mês válido entre 1 e 12.');
       return;
     }
-
     if (ano && (isNaN(ano) || ano.length !== 4)) {
       Alert.alert('Erro', 'Informe um ano válido com 4 dígitos.');
       return;
@@ -50,11 +44,9 @@ export default function FeirantesComFaltasScreen() {
       const token = await AsyncStorage.getItem('token');
       let url = `${API_URL}/faltas/com-faltas/horario/${horarioId}`;
       const params = [];
-
       if (statusSelecionado) params.push(`status=${statusSelecionado}`);
       if (mes) params.push(`mes=${mes}`);
       if (ano) params.push(`ano=${ano}`);
-
       if (params.length > 0) url += `?${params.join('&')}`;
 
       const res = await axios.get(url, {
@@ -74,20 +66,24 @@ export default function FeirantesComFaltasScreen() {
     }
   };
 
-  const abrirModal = (feirante, acao) => {
-    setFeiranteSelecionado(feirante);
-    setAcaoSelecionada(acao);
-    setModalVisible(true);
-  };
+  const navegar = (feirante, acao) => {
+    const feiranteId = feirante.idFeirante;
 
-  const navegar = (bancaId) => {
-    setModalVisible(false);
-    if (acaoSelecionada === 'detalhes') {
-      navigation.navigate('VerDetalhesFeirante', { feiranteId: feiranteSelecionado.idFeirante, bancaId });
-    } else if (acaoSelecionada === 'justificativas') {
-      navigation.navigate('VerJustificativasFeirante', { feiranteId: feiranteSelecionado.idFeirante, bancaId });
-    } else if (acaoSelecionada === 'fila') {
-      navigation.navigate('SubstituirFeirante', { feiranteId: feiranteSelecionado.idFeirante, horarioId, bancaId });
+    const banca = feirante.bancas?.[0]; // usa a primeira banca do array
+
+    if (!banca) {
+      Alert.alert('Erro', 'Banca não encontrada para este feirante.');
+      return;
+    }
+
+    const bancaId = banca.id;
+
+    if (acao === 'detalhes') {
+      navigation.navigate('VerDetalhesByIdFeiranteAndBanca', { feiranteId, bancaId, horarioId });
+    } else if (acao === 'justificativas') {
+      navigation.navigate('VerJustificativasFeirante', { feiranteId, bancaId, horarioId });
+    } else if (acao === 'fila') {
+      navigation.navigate('SubstituirFeirante', { feiranteId, bancaId, horarioId });
     }
   };
 
@@ -130,20 +126,16 @@ export default function FeirantesComFaltasScreen() {
                 <View key={idx} style={styles.card}>
                   <Text style={styles.nome}>{feirante.nome}</Text>
                   <Text style={styles.cpf}>CPF: {feirante.cpf}</Text>
-                  <Text style={styles.faltas}>Total: {feirante.total}</Text>
-                  <Text style={styles.faltasRecusadas}>Recusadas: {feirante.recusadas}</Text>
-                  <Text style={styles.faltasPendentes}>Pendentes: {feirante.pendentes}</Text>
-                  <Text style={styles.faltasAceitas}>Aceitas: {feirante.aceitas}</Text>
 
-                  <TouchableOpacity style={styles.botao} onPress={() => abrirModal(feirante, 'detalhes')}>
+                  <TouchableOpacity style={styles.botao} onPress={() => navegar(feirante, 'detalhes')}>
                     <Text style={styles.botaoTexto}>Ver Detalhes</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={[styles.botao, styles.botaoJustificativa]} onPress={() => abrirModal(feirante, 'justificativas')}>
+                  <TouchableOpacity style={[styles.botao, styles.botaoJustificativa]} onPress={() => navegar(feirante, 'justificativas')}>
                     <Text style={styles.botaoTexto}>Ver Justificativas</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={[styles.botao, styles.botaoSubstituir]} onPress={() => abrirModal(feirante, 'fila')}>
+                  <TouchableOpacity style={[styles.botao, styles.botaoSubstituir]} onPress={() => navegar(feirante, 'fila')}>
                     <Text style={styles.botaoTexto}>Ver Próximo da Fila</Text>
                   </TouchableOpacity>
                 </View>
@@ -153,29 +145,6 @@ export default function FeirantesComFaltasScreen() {
             )}
           </ScrollView>
         )}
-
-        {/* Modal para escolher banca */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Escolha a banca de {feiranteSelecionado?.nome}</Text>
-              {feiranteSelecionado?.bancas?.map((banca) => (
-                <Pressable key={banca.id} style={styles.botaoHorario} onPress={() => navegar(banca.id)}>
-                  <Text style={styles.botaoTexto}>{banca.tipoProduto}</Text>
-                  <Text style={styles.botaoSubtexto}>{banca.produtos?.join(', ')}</Text>
-                </Pressable>
-              ))}
-              <Pressable style={styles.cancelar} onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelarTexto}>Cancelar</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
@@ -197,19 +166,8 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#F2F6FF', padding: 15, borderRadius: 10, marginBottom: 15, elevation: 2 },
   nome: { fontSize: 18, fontWeight: 'bold', color: '#004AAD' },
   cpf: { fontSize: 14, color: '#555', marginTop: 5 },
-  faltas: { fontSize: 14, color: '#000', marginTop: 4 },
-  faltasRecusadas: { fontSize: 14, color: '#C62828', marginTop: 2 },
-  faltasAceitas: { fontSize: 14, color: '#2E7D32', marginTop: 2 },
-  faltasPendentes: { fontSize: 14, color: '#FFA000', marginTop: 2 },
   botao: { backgroundColor: '#004AAD', paddingVertical: 8, borderRadius: 6, marginTop: 12 },
   botaoJustificativa: { backgroundColor: '#888', marginTop: 8 },
   botaoSubstituir: { backgroundColor: '#00796B', marginTop: 8 },
   nenhum: { textAlign: 'center', marginTop: 40, fontSize: 16, color: '#555' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { width: '90%', backgroundColor: '#fff', padding: 20, borderRadius: 12, elevation: 4 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#004AAD', marginBottom: 12, textAlign: 'center' },
-  botaoHorario: { backgroundColor: '#00AEEF', paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, marginTop: 10 },
-  botaoSubtexto: { color: '#fff', fontSize: 13, textAlign: 'center', marginTop: 2 },
-  cancelar: { marginTop: 20, alignSelf: 'center' },
-  cancelarTexto: { color: '#004AAD', fontWeight: 'bold' },
 });

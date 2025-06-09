@@ -10,7 +10,6 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { API_URL } from '../../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
